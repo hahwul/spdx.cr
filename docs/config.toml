@@ -1,6 +1,6 @@
 title = "spdx.cr"
 description = "Crystal implementation of the SPDX specification"
-base_url = "http://localhost:3000"
+base_url = ""
 
 [plugins]
 processors = ["markdown"]
