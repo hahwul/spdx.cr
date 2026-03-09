@@ -1,0 +1,36 @@
+{% include "header.html" %}
+<header class="docs-header">
+  <a href="{{ base_url }}/" class="logo">{{ site_title }}</a>
+  <nav>
+    <a href="{{ base_url }}/user-guide/">User Guide</a>
+    <a href="{{ base_url }}/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="{{ base_url }}/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="{{ base_url }}/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="{{ base_url }}/user-guide/license-list/">License List</a></li>
+        <li><a href="{{ base_url }}/user-guide/documents/">Documents</a></li>
+        <li><a href="{{ base_url }}/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="{{ base_url }}/api-reference/expression/">Expression</a></li>
+        <li><a href="{{ base_url }}/api-reference/license/">License</a></li>
+        <li><a href="{{ base_url }}/api-reference/document/">Document</a></li>
+        <li><a href="{{ base_url }}/api-reference/formats/">Formats</a></li>
+        <li><a href="{{ base_url }}/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>{{ page.title }}</h1>
+    {{ content }}
+{% include "footer.html" %}

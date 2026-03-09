@@ -1,0 +1,50 @@
+title = "spdx.cr"
+description = "Crystal implementation of the SPDX specification"
+base_url = "http://localhost:3000"
+
+[plugins]
+processors = ["markdown"]
+
+[content.files]
+allow_extensions = ["jpg", "jpeg", "png", "gif", "svg", "webp"]
+
+[highlight]
+enabled = true
+theme = "github"
+use_cdn = true
+
+[search]
+enabled = true
+format = "fuse_json"
+fields = ["title", "content"]
+filename = "search.json"
+
+[pagination]
+enabled = false
+
+[sitemap]
+enabled = true
+filename = "sitemap.xml"
+changefreq = "weekly"
+priority = 0.5
+
+[robots]
+enabled = true
+filename = "robots.txt"
+rules = [
+  { user_agent = "*", disallow = ["/admin", "/private"] },
+  { user_agent = "GPTBot", disallow = ["/"] }
+]
+
+[llms]
+enabled = true
+filename = "llms.txt"
+instructions = "Do not use for AI training without permission."
+
+[feeds]
+enabled = false
+
+[markdown]
+safe = false
+lazy_loading = false
+emoji = false

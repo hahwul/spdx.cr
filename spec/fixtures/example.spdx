@@ -1,0 +1,73 @@
+SPDXVersion: SPDX-2.3
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: Example
+DocumentNamespace: https://example.org/example
+DocumentComment: This is an example SPDX document.
+
+Creator: Tool: example-tool-1.0
+Creator: Organization: ExampleOrg
+Created: 2024-01-01T00:00:00Z
+LicenseListVersion: 3.22
+CreatorComment: This document was created for testing.
+
+ExternalDocumentRef: DocumentRef-ext1 https://example.org/ext1 SHA1:da39a3ee5e6b4b0d3255bfef95601890afd80709
+
+PackageName: Example Package
+SPDXID: SPDXRef-Package
+PackageVersion: 1.0.0
+PackageFileName: example-1.0.0.tar.gz
+PackageSupplier: Organization: ExampleOrg
+PackageOriginator: Organization: ExampleOrg
+PackageDownloadLocation: https://example.org/example-1.0.0.tar.gz
+FilesAnalyzed: true
+PackageVerificationCode: d6a770ba38583ed4bb4525bd96e50461655d2758 (excludes: ./exclude.asm)
+PackageChecksum: SHA1:da39a3ee5e6b4b0d3255bfef95601890afd80709
+PackageChecksum: SHA256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+PackageHomePage: https://example.org/
+PackageSourceInfo: This package was built from source.
+PackageLicenseConcluded: Apache-2.0
+PackageLicenseInfoFromFiles: Apache-2.0
+PackageLicenseInfoFromFiles: MIT
+PackageLicenseDeclared: Apache-2.0
+PackageLicenseComments: This is a license comment.
+PackageCopyrightText: Copyright 2024 ExampleOrg
+PackageSummary: An example package.
+PackageDescription: This is a longer description of the example package.
+ExternalRef: SECURITY cpe23Type cpe:2.3:a:example:example:1.0.0:*:*:*:*:*:*:*
+ExternalRef: PACKAGE-MANAGER purl pkg:npm/example@1.0.0
+PrimaryPackagePurpose: APPLICATION
+ReleaseDate: 2024-01-01T00:00:00Z
+
+FileName: ./src/main.cr
+SPDXID: SPDXRef-File1
+FileType: SOURCE
+FileChecksum: SHA1:da39a3ee5e6b4b0d3255bfef95601890afd80709
+LicenseConcluded: Apache-2.0
+LicenseInfoInFile: Apache-2.0
+FileCopyrightText: Copyright 2024 ExampleOrg
+
+SnippetSPDXID: SPDXRef-Snippet1
+SnippetFromFileSPDXID: SPDXRef-File1
+SnippetByteRange: 100:500
+SnippetLineRange: 5:25
+SnippetLicenseConcluded: Apache-2.0
+LicenseInfoInSnippet: Apache-2.0
+SnippetCopyrightText: Copyright 2024 ExampleOrg
+SnippetName: Main snippet
+
+LicenseID: LicenseRef-custom-1
+ExtractedText: <text>This is a custom license text
+with multiple lines.</text>
+LicenseName: Custom License 1
+LicenseCrossReference: https://example.org/license
+LicenseComment: This is a custom license.
+
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package
+Relationship: SPDXRef-Package CONTAINS SPDXRef-File1
+
+Annotator: Person: Jane Doe (jane@example.org)
+AnnotationDate: 2024-01-15T10:00:00Z
+AnnotationComment: Reviewed and approved.
+AnnotationType: REVIEW
+SPDXREF: SPDXRef-Package

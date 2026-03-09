@@ -1,0 +1,3 @@
+module Spdx
+  VERSION = "0.1.0"
+end

@@ -1,0 +1,142 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "Example",
+  "documentNamespace": "https://example.org/example",
+  "comment": "This is an example SPDX document.",
+  "creationInfo": {
+    "created": "2024-01-01T00:00:00Z",
+    "creators": [
+      "Tool: example-tool-1.0",
+      "Organization: ExampleOrg"
+    ],
+    "licenseListVersion": "3.22",
+    "comment": "This document was created for testing."
+  },
+  "externalDocumentRefs": [
+    {
+      "externalDocumentId": "DocumentRef-ext1",
+      "spdxDocument": "https://example.org/ext1",
+      "checksum": {
+        "algorithm": "SHA1",
+        "checksumValue": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+      }
+    }
+  ],
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package",
+      "name": "Example Package",
+      "versionInfo": "1.0.0",
+      "packageFileName": "example-1.0.0.tar.gz",
+      "supplier": "Organization: ExampleOrg",
+      "originator": "Organization: ExampleOrg",
+      "downloadLocation": "https://example.org/example-1.0.0.tar.gz",
+      "filesAnalyzed": true,
+      "packageVerificationCode": {
+        "packageVerificationCodeValue": "d6a770ba38583ed4bb4525bd96e50461655d2758",
+        "packageVerificationCodeExcludedFiles": ["./exclude.asm"]
+      },
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "homepage": "https://example.org/",
+      "sourceInfo": "This package was built from source.",
+      "licenseConcluded": "Apache-2.0",
+      "licenseInfoFromFiles": ["Apache-2.0", "MIT"],
+      "licenseDeclared": "Apache-2.0",
+      "licenseComments": "This is a license comment.",
+      "copyrightText": "Copyright 2024 ExampleOrg",
+      "summary": "An example package.",
+      "description": "This is a longer description of the example package.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:example:example:1.0.0:*:*:*:*:*:*:*"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/example@1.0.0"
+        }
+      ],
+      "primaryPackagePurpose": "APPLICATION",
+      "releaseDate": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "files": [
+    {
+      "SPDXID": "SPDXRef-File1",
+      "fileName": "./src/main.cr",
+      "fileTypes": ["SOURCE"],
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        }
+      ],
+      "licenseConcluded": "Apache-2.0",
+      "licenseInfoInFiles": ["Apache-2.0"],
+      "copyrightText": "Copyright 2024 ExampleOrg"
+    }
+  ],
+  "snippets": [
+    {
+      "SPDXID": "SPDXRef-Snippet1",
+      "snippetFromFile": "SPDXRef-File1",
+      "ranges": [
+        {
+          "startPointer": { "offset": 100 },
+          "endPointer": { "offset": 500 }
+        },
+        {
+          "startPointer": { "lineNumber": 5 },
+          "endPointer": { "lineNumber": 25 }
+        }
+      ],
+      "licenseConcluded": "Apache-2.0",
+      "licenseInfoInSnippets": ["Apache-2.0"],
+      "copyrightText": "Copyright 2024 ExampleOrg",
+      "name": "Main snippet"
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-Package"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-File1"
+    }
+  ],
+  "annotations": [
+    {
+      "annotationDate": "2024-01-15T10:00:00Z",
+      "annotationType": "REVIEW",
+      "annotator": "Person: Jane Doe (jane@example.org)",
+      "comment": "Reviewed and approved.",
+      "spdxElementId": "SPDXRef-Package"
+    }
+  ],
+  "hasExtractedLicensingInfos": [
+    {
+      "licenseId": "LicenseRef-custom-1",
+      "extractedText": "This is a custom license text\nwith multiple lines.",
+      "name": "Custom License 1",
+      "seeAlsos": ["https://example.org/license"],
+      "comment": "This is a custom license."
+    }
+  ]
+}
