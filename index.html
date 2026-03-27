@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Crystal implementation of the SPDX specification">
+  <title>spdx.cr - spdx.cr</title>
+  <meta property="og:title" content="spdx.cr">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://spdx.cr.hahwul.com/">
+<meta property="og:description" content="Crystal implementation of the SPDX specification">
+<meta property="og:image" content="https://spdx.cr.hahwul.com/og-images/spdxcr.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="spdx.cr">
+<meta name="twitter:description" content="Crystal implementation of the SPDX specification">
+<meta name="twitter:image" content="https://spdx.cr.hahwul.com/og-images/spdxcr.svg">
+    <link rel="stylesheet" href="https://spdx.cr.hahwul.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  
+</head>
+<body data-section="">
+<header class="docs-header">
+  <a href="https://spdx.cr.hahwul.com/" class="logo">spdx.cr</a>
+  <nav>
+    <a href="https://spdx.cr.hahwul.com/user-guide/">User Guide</a>
+    <a href="https://spdx.cr.hahwul.com/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-list/">License List</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/documents/">Documents</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/expression/">Expression</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/license/">License</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/document/">Document</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/formats/">Formats</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>spdx.cr</h1>
+    <p>A Crystal implementation of the <a href="https://spdx.dev/">SPDX (Software Package Data Exchange)</a> specification. Parse, validate, and manipulate SPDX license expressions and documents with type-safe Crystal code.</p>
+<blockquote>
+<p>Implements <strong>SPDX 2.3</strong> with full license expression parsing, document model, Tag-Value and JSON format support.</p>
+</blockquote>
+<h2 id="overview">Overview</h2>
+<p>spdx.cr provides a Crystal library and CLI tool for working with SPDX -- the open standard for communicating software bill of materials (SBOM) information. It supports parsing license expressions, querying the official SPDX license list, and reading/writing SPDX documents in both Tag-Value and JSON formats.</p>
+<h2 id="quick-links">Quick Links</h2>
+<ul>
+<li><strong><a href="/user-guide/getting-started/">Getting Started</a></strong> -- Installation and your first SPDX expression</li>
+<li><strong><a href="/user-guide/license-expressions/">License Expressions</a></strong> -- Parsing and validating SPDX expressions</li>
+<li><strong><a href="/api-reference/expression/">API Reference</a></strong> -- Complete API documentation</li>
+</ul>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>License Expression Parser</strong> -- Full recursive descent parser with correct operator precedence</li>
+<li><strong>727 Licenses Embedded</strong> -- Complete SPDX license list available at compile time, no network required</li>
+<li><strong>SPDX 2.3 Document Model</strong> -- Full data model with JSON serialization</li>
+<li><strong>Tag-Value &amp; JSON Formats</strong> -- Parse and generate both SPDX formats</li>
+<li><strong>Expression Validation</strong> -- Validate expressions against the official license list</li>
+<li><strong>CLI Tool</strong> -- Command-line interface for all operations</li>
+<li><strong>Zero Dependencies</strong> -- Pure Crystal implementation using only stdlib</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>Add spdx.cr to your <code>shard.yml</code>:</p>
+<pre><code class="language-yaml hljs">dependencies:
+  spdx:
+    github: hahwul/spdx.cr
+</code></pre>
+<p>Then run:</p>
+<pre><code class="language-bash hljs">shards install
+</code></pre>
+<h2 id="quick-example">Quick Example</h2>
+<pre><code class="language-crystal hljs">require &quot;spdx&quot;
+
+# Parse a license expression
+ast = Spdx.parse(&quot;MIT AND Apache-2.0&quot;)
+puts ast  # =&gt; MIT AND Apache-2.0
+
+# Check if an expression is valid
+Spdx.valid_expression?(&quot;MIT OR GPL-2.0-only&quot;)  # =&gt; true
+
+# Look up a license
+lic = Spdx.find_license(&quot;MIT&quot;)
+puts lic.name          # =&gt; &quot;MIT License&quot;
+puts lic.osi_approved? # =&gt; true
+</code></pre>
+
+    <div class="docs-footer">
+      <p>Powered by <a href="https://github.com/hahwul/hwaro">Hwaro</a></p>
+    </div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="License and LicenseList API reference">
+  <title>License - spdx.cr</title>
+  <meta property="og:title" content="License">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://spdx.cr.hahwul.com/api-reference/license/">
+<meta property="og:description" content="License and LicenseList API reference">
+<meta property="og:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-license.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="License">
+<meta name="twitter:description" content="License and LicenseList API reference">
+<meta name="twitter:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-license.svg">
+    <link rel="stylesheet" href="https://spdx.cr.hahwul.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  
+</head>
+<body data-section="api-reference">
+<header class="docs-header">
+  <a href="https://spdx.cr.hahwul.com/" class="logo">spdx.cr</a>
+  <nav>
+    <a href="https://spdx.cr.hahwul.com/user-guide/">User Guide</a>
+    <a href="https://spdx.cr.hahwul.com/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-list/">License List</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/documents/">Documents</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/expression/">Expression</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/license/">License</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/document/">Document</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/formats/">Formats</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>License</h1>
+    <h2 id="spdxlicense">Spdx::License</h2>
+<p>A struct representing an SPDX license.</p>
+<h3 id="properties">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>String</code></td>
+<td>SPDX license identifier (e.g., <code>&quot;MIT&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td>Full license name (e.g., <code>&quot;MIT License&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>osi_approved?</code></td>
+<td><code>Bool</code></td>
+<td>Whether OSI-approved</td>
+</tr>
+<tr>
+<td><code>fsf_libre?</code></td>
+<td><code>Bool</code></td>
+<td>Whether FSF libre</td>
+</tr>
+<tr>
+<td><code>deprecated?</code></td>
+<td><code>Bool</code></td>
+<td>Whether deprecated in current SPDX list</td>
+</tr>
+</tbody>
+</table>
+<h3 id="constructor">Constructor</h3>
+<pre><code class="language-crystal hljs">Spdx::License.new(
+  id : String,
+  name : String,
+  osi_approved : Bool = false,
+  fsf_libre : Bool = false,
+  deprecated : Bool = false
+)
+</code></pre>
+<h3 id="to-s-string"><code>#to_s : String</code></h3>
+<p>Returns the license ID.</p>
+<pre><code class="language-crystal hljs">lic = Spdx.find_license(&quot;MIT&quot;)
+lic.to_s  # =&gt; &quot;MIT&quot;
+</code></pre>
+<h2 id="spdxlicenseexception">Spdx::LicenseException</h2>
+<p>A struct representing an SPDX license exception.</p>
+<h3 id="properties-1">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>String</code></td>
+<td>Exception identifier (e.g., <code>&quot;Classpath-exception-2.0&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td>Full exception name</td>
+</tr>
+<tr>
+<td><code>deprecated?</code></td>
+<td><code>Bool</code></td>
+<td>Whether deprecated</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxlicenselist">Spdx::LicenseList</h2>
+<p>Module for querying the embedded SPDX license database. All lookups are case-insensitive.</p>
+<h3 id="licenses-arraylicense"><code>.licenses : Array(License)</code></h3>
+<p>Returns all 727 SPDX licenses.</p>
+<h3 id="exceptions-arraylicenseexception"><code>.exceptions : Array(LicenseException)</code></h3>
+<p>Returns all 84 SPDX license exceptions.</p>
+<h3 id="find-licenseid-string-license"><code>.find_license(id : String) : License</code></h3>
+<p>Finds a license by ID (case-insensitive).</p>
+<pre><code class="language-crystal hljs">Spdx::LicenseList.find_license(&quot;mit&quot;)  # =&gt; License(id: &quot;MIT&quot;, ...)
+</code></pre>
+<p><strong>Raises:</strong> <code>Spdx::UnknownLicenseError</code> if not found.</p>
+<h3 id="licenseid-string-bool"><code>.license?(id : String) : Bool</code></h3>
+<p>Returns <code>true</code> if the license ID exists.</p>
+<h3 id="find-exceptionid-string-licenseexception"><code>.find_exception(id : String) : LicenseException</code></h3>
+<p>Finds an exception by ID (case-insensitive).</p>
+<p><strong>Raises:</strong> <code>Spdx::UnknownExceptionError</code> if not found.</p>
+<h3 id="exceptionid-string-bool"><code>.exception?(id : String) : Bool</code></h3>
+<p>Returns <code>true</code> if the exception ID exists.</p>
+<h3 id="searchquery-string-arraylicense"><code>.search(query : String) : Array(License)</code></h3>
+<p>Searches licenses by ID or name substring match.</p>
+<pre><code class="language-crystal hljs">Spdx::LicenseList.search(&quot;apache&quot;)
+# =&gt; [License(Apache-1.0), License(Apache-1.1), License(Apache-2.0)]
+</code></pre>
+<h3 id="search-exceptionsquery-string-arraylicenseexception"><code>.search_exceptions(query : String) : Array(LicenseException)</code></h3>
+<p>Searches exceptions by ID or name substring match.</p>
+<h3 id="osi-approved-arraylicense"><code>.osi_approved : Array(License)</code></h3>
+<p>Returns only OSI-approved licenses.</p>
+<h3 id="fsf-libre-arraylicense"><code>.fsf_libre : Array(License)</code></h3>
+<p>Returns only FSF libre licenses.</p>
+
+    <div class="docs-footer">
+      <p>Powered by <a href="https://github.com/hahwul/hwaro">Hwaro</a></p>
+    </div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+</body>
+</html>

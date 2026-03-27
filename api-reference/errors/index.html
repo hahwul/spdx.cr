@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Error handling in spdx.cr">
+  <title>Errors - spdx.cr</title>
+  <meta property="og:title" content="Errors">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://spdx.cr.hahwul.com/api-reference/errors/">
+<meta property="og:description" content="Error handling in spdx.cr">
+<meta property="og:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-errors.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Errors">
+<meta name="twitter:description" content="Error handling in spdx.cr">
+<meta name="twitter:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-errors.svg">
+    <link rel="stylesheet" href="https://spdx.cr.hahwul.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  
+</head>
+<body data-section="api-reference">
+<header class="docs-header">
+  <a href="https://spdx.cr.hahwul.com/" class="logo">spdx.cr</a>
+  <nav>
+    <a href="https://spdx.cr.hahwul.com/user-guide/">User Guide</a>
+    <a href="https://spdx.cr.hahwul.com/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-list/">License List</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/documents/">Documents</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/expression/">Expression</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/license/">License</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/document/">Document</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/formats/">Formats</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>Errors</h1>
+    <h2 id="spdxerror">Spdx::Error</h2>
+<p>Base error class for all spdx.cr errors. Extends Crystal's <code>Exception</code>.</p>
+<pre><code class="language-crystal hljs">class Spdx::Error &lt; Exception
+end
+</code></pre>
+<h2 id="error-hierarchy">Error Hierarchy</h2>
+<table>
+<thead>
+<tr>
+<th>Error Class</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Spdx::Error</code></td>
+<td>Base error class</td>
+</tr>
+<tr>
+<td><code>Spdx::ParseError</code></td>
+<td>Invalid expression syntax</td>
+</tr>
+<tr>
+<td><code>Spdx::UnknownLicenseError</code></td>
+<td>License ID not found</td>
+</tr>
+<tr>
+<td><code>Spdx::UnknownExceptionError</code></td>
+<td>Exception ID not found</td>
+</tr>
+<tr>
+<td><code>Spdx::DocumentError</code></td>
+<td>Document-level errors</td>
+</tr>
+<tr>
+<td><code>Spdx::ValidationError</code></td>
+<td>Validation failures</td>
+</tr>
+<tr>
+<td><code>Spdx::FormatError</code></td>
+<td>Format parsing errors</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxparseerror">Spdx::ParseError</h2>
+<p>Raised when an SPDX license expression cannot be parsed.</p>
+<pre><code class="language-crystal hljs">begin
+  Spdx.parse(&quot;&quot;)
+rescue ex : Spdx::ParseError
+  puts ex.message  # =&gt; &quot;Empty expression&quot;
+end
+
+begin
+  Spdx.parse(&quot;AND MIT&quot;)
+rescue ex : Spdx::ParseError
+  puts ex.message  # =&gt; &quot;Unexpected token 'MIT' at position ...&quot;
+end
+
+begin
+  Spdx.parse(&quot;(MIT AND Apache-2.0&quot;)
+rescue ex : Spdx::ParseError
+  puts ex.message  # =&gt; &quot;Expected ')' at position ...&quot;
+end
+</code></pre>
+<h2 id="spdxunknownlicenseerror">Spdx::UnknownLicenseError</h2>
+<p>Raised when a license ID is not found in the SPDX list.</p>
+<pre><code class="language-crystal hljs">begin
+  Spdx.find_license(&quot;FakeLicense-999&quot;)
+rescue ex : Spdx::UnknownLicenseError
+  puts ex.license_id  # =&gt; &quot;FakeLicense-999&quot;
+  puts ex.message      # =&gt; &quot;Unknown SPDX license identifier: FakeLicense-999&quot;
+end
+</code></pre>
+<h3 id="properties">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>license_id</code></td>
+<td><code>String</code></td>
+<td>The license ID that was not found</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxunknownexceptionerror">Spdx::UnknownExceptionError</h2>
+<p>Raised when a license exception ID is not found.</p>
+<pre><code class="language-crystal hljs">begin
+  Spdx.find_exception(&quot;FakeException&quot;)
+rescue ex : Spdx::UnknownExceptionError
+  puts ex.exception_id  # =&gt; &quot;FakeException&quot;
+  puts ex.message        # =&gt; &quot;Unknown SPDX license exception: FakeException&quot;
+end
+</code></pre>
+<h3 id="properties-1">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>exception_id</code></td>
+<td><code>String</code></td>
+<td>The exception ID that was not found</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxvalidationerror">Spdx::ValidationError</h2>
+<p>Raised for document validation failures.</p>
+<pre><code class="language-crystal hljs">begin
+  raise Spdx::ValidationError.new([&quot;spdxVersion is required&quot;, &quot;name is required&quot;])
+rescue ex : Spdx::ValidationError
+  puts ex.errors  # =&gt; [&quot;spdxVersion is required&quot;, &quot;name is required&quot;]
+end
+</code></pre>
+<h3 id="properties-2">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>errors</code></td>
+<td><code>Array(String)</code></td>
+<td>List of validation error messages</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxformaterror">Spdx::FormatError</h2>
+<p>Raised when a document format cannot be parsed.</p>
+<pre><code class="language-crystal hljs">begin
+  Spdx::Format::Json::Parser.parse(&quot;not json&quot;)
+rescue ex : Spdx::FormatError
+  puts ex.message  # =&gt; &quot;Invalid SPDX JSON: ...&quot;
+end
+</code></pre>
+<h2 id="error-handling-pattern">Error Handling Pattern</h2>
+<pre><code class="language-crystal hljs">require &quot;spdx&quot;
+
+def safe_parse(input : String) : Spdx::Expression::Node?
+  Spdx.parse(input)
+rescue Spdx::ParseError
+  nil
+end
+
+if ast = safe_parse(&quot;MIT AND Apache-2.0&quot;)
+  puts &quot;Valid: #{ast}&quot;
+else
+  puts &quot;Invalid expression&quot;
+end
+</code></pre>
+
+    <div class="docs-footer">
+      <p>Powered by <a href="https://github.com/hahwul/hwaro">Hwaro</a></p>
+    </div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+</body>
+</html>

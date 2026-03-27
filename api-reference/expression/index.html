@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Expression parser API reference">
+  <title>Expression - spdx.cr</title>
+  <meta property="og:title" content="Expression">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://spdx.cr.hahwul.com/api-reference/expression/">
+<meta property="og:description" content="Expression parser API reference">
+<meta property="og:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-expression.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Expression">
+<meta name="twitter:description" content="Expression parser API reference">
+<meta name="twitter:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-expression.svg">
+    <link rel="stylesheet" href="https://spdx.cr.hahwul.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  
+</head>
+<body data-section="api-reference">
+<header class="docs-header">
+  <a href="https://spdx.cr.hahwul.com/" class="logo">spdx.cr</a>
+  <nav>
+    <a href="https://spdx.cr.hahwul.com/user-guide/">User Guide</a>
+    <a href="https://spdx.cr.hahwul.com/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-list/">License List</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/documents/">Documents</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/expression/">Expression</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/license/">License</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/document/">Document</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/formats/">Formats</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>Expression</h1>
+    <h2 id="spdx-top-level">Spdx (top-level)</h2>
+<p>Convenience methods on the <code>Spdx</code> module for working with expressions.</p>
+<h3 id="parseexpression-string-expressionnode"><code>.parse(expression : String) : Expression::Node</code></h3>
+<p>Parses an SPDX license expression string and returns an AST node.</p>
+<pre><code class="language-crystal hljs">ast = Spdx.parse(&quot;MIT AND Apache-2.0&quot;)
+</code></pre>
+<p><strong>Raises:</strong> <code>Spdx::ParseError</code> if the expression is invalid.</p>
+<h3 id="valid-expressionexpression-string-bool"><code>.valid_expression?(expression : String) : Bool</code></h3>
+<p>Returns <code>true</code> if the expression is syntactically valid.</p>
+<pre><code class="language-crystal hljs">Spdx.valid_expression?(&quot;MIT AND Apache-2.0&quot;)  # =&gt; true
+Spdx.valid_expression?(&quot;AND&quot;)                  # =&gt; false
+</code></pre>
+<h3 id="validate-expressionexpression-string-expressionvalidationresult"><code>.validate_expression(expression : String) : Expression::ValidationResult</code></h3>
+<p>Parses and validates the expression against the SPDX license list.</p>
+<pre><code class="language-crystal hljs">result = Spdx.validate_expression(&quot;MIT AND FakeLicense-1.0&quot;)
+result.valid?    # =&gt; true
+result.warnings  # =&gt; [&quot;Unknown license: FakeLicense-1.0&quot;]
+</code></pre>
+<p><strong>Raises:</strong> <code>Spdx::ParseError</code> if the expression is syntactically invalid.</p>
+<h2 id="expressionparser">Expression::Parser</h2>
+<h3 id="parseinput-string-node"><code>.parse(input : String) : Node</code></h3>
+<p>Parses an SPDX license expression using a recursive descent parser.</p>
+<p>Operator precedence (highest to lowest): <code>+</code> &gt; <code>WITH</code> &gt; <code>AND</code> &gt; <code>OR</code></p>
+<pre><code class="language-crystal hljs">node = Spdx::Expression::Parser.parse(&quot;MIT OR Apache-2.0 AND GPL-2.0-only&quot;)
+# Parsed as: MIT OR (Apache-2.0 AND GPL-2.0-only)
+</code></pre>
+<h2 id="expressionvalidator">Expression::Validator</h2>
+<h3 id="validatenode-node-validationresult"><code>.validate(node : Node) : ValidationResult</code></h3>
+<p>Validates an AST against the SPDX license list. Returns a <code>ValidationResult</code> with warnings.</p>
+<pre><code class="language-crystal hljs">ast = Spdx::Expression::Parser.parse(&quot;GPL-2.0&quot;)
+result = Spdx::Expression::Validator.validate(ast)
+result.warnings  # =&gt; [&quot;Deprecated license: GPL-2.0&quot;]
+</code></pre>
+<h2 id="expressionvalidationresult">Expression::ValidationResult</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>valid?</code></td>
+<td><code>Bool</code></td>
+<td>Always <code>true</code> (syntactic validity checked during parsing)</td>
+</tr>
+<tr>
+<td><code>warnings</code></td>
+<td><code>Array(String)</code></td>
+<td>Warnings about unknown/deprecated licenses or exceptions</td>
+</tr>
+</tbody>
+</table>
+<h2 id="expressionformatter">Expression::Formatter</h2>
+<h3 id="formatnode-node-string"><code>.format(node : Node) : String</code></h3>
+<p>Converts an AST node back to a string.</p>
+<pre><code class="language-crystal hljs">ast = Spdx::Expression::Parser.parse(&quot;MIT AND Apache-2.0&quot;)
+Spdx::Expression::Formatter.format(ast)  # =&gt; &quot;MIT AND Apache-2.0&quot;
+</code></pre>
+<h3 id="normalizeexpression-string-string"><code>.normalize(expression : String) : String</code></h3>
+<p>Parses and re-formats an expression, normalizing whitespace.</p>
+<pre><code class="language-crystal hljs">Spdx::Expression::Formatter.normalize(&quot;MIT   AND   Apache-2.0&quot;)
+# =&gt; &quot;MIT AND Apache-2.0&quot;
+</code></pre>
+<h2 id="ast-node-types">AST Node Types</h2>
+<h3 id="expressionlicensenode">Expression::LicenseNode</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>String</code></td>
+<td>License identifier (e.g., <code>&quot;MIT&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>or_later?</code></td>
+<td><code>Bool</code></td>
+<td>Whether <code>+</code> was specified</td>
+</tr>
+</tbody>
+</table>
+<h3 id="expressionlicenserefnode">Expression::LicenseRefNode</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>license_ref</code></td>
+<td><code>String</code></td>
+<td>License reference (e.g., <code>&quot;LicenseRef-custom-1&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>document_ref</code></td>
+<td><code>String?</code></td>
+<td>Document reference if present</td>
+</tr>
+</tbody>
+</table>
+<h3 id="expressionwithexceptionnode">Expression::WithExceptionNode</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>license</code></td>
+<td><code>Node</code></td>
+<td>The license node</td>
+</tr>
+<tr>
+<td><code>exception</code></td>
+<td><code>String</code></td>
+<td>Exception identifier</td>
+</tr>
+</tbody>
+</table>
+<h3 id="expressioncompoundnode">Expression::CompoundNode</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>operator</code></td>
+<td><code>Operator</code></td>
+<td><code>AND</code> or <code>OR</code></td>
+</tr>
+<tr>
+<td><code>left</code></td>
+<td><code>Node</code></td>
+<td>Left operand</td>
+</tr>
+<tr>
+<td><code>right</code></td>
+<td><code>Node</code></td>
+<td>Right operand</td>
+</tr>
+</tbody>
+</table>
+<p>All node types implement <code>#to_s</code> for string output.</p>
+
+    <div class="docs-footer">
+      <p>Powered by <a href="https://github.com/hahwul/hwaro">Hwaro</a></p>
+    </div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Command-line interface reference">
+  <title>CLI - spdx.cr</title>
+  <meta property="og:title" content="CLI">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://spdx.cr.hahwul.com/user-guide/cli/">
+<meta property="og:description" content="Command-line interface reference">
+<meta property="og:image" content="https://spdx.cr.hahwul.com/og-images/user-guide-cli.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CLI">
+<meta name="twitter:description" content="Command-line interface reference">
+<meta name="twitter:image" content="https://spdx.cr.hahwul.com/og-images/user-guide-cli.svg">
+    <link rel="stylesheet" href="https://spdx.cr.hahwul.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  
+</head>
+<body data-section="user-guide">
+<header class="docs-header">
+  <a href="https://spdx.cr.hahwul.com/" class="logo">spdx.cr</a>
+  <nav>
+    <a href="https://spdx.cr.hahwul.com/user-guide/">User Guide</a>
+    <a href="https://spdx.cr.hahwul.com/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-list/">License List</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/documents/">Documents</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/expression/">Expression</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/license/">License</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/document/">Document</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/formats/">Formats</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>CLI</h1>
+    <h2 id="building">Building</h2>
+<p>Build the CLI binary from source:</p>
+<pre><code class="language-bash hljs">crystal build src/cli.cr -o bin/spdx
+</code></pre>
+<p>Or use the shard target:</p>
+<pre><code class="language-bash hljs">shards build
+</code></pre>
+<h2 id="commands">Commands</h2>
+<h3 id="spdx-expression-parse">spdx expression parse</h3>
+<p>Parse a license expression and display the AST:</p>
+<pre><code class="language-bash hljs">$ spdx expression parse &quot;MIT AND Apache-2.0&quot;
+Expression: MIT AND Apache-2.0
+Parsed:     MIT AND Apache-2.0
+AND:
+  License: MIT
+  License: Apache-2.0
+</code></pre>
+<pre><code class="language-bash hljs">$ spdx expression parse &quot;GPL-2.0-only WITH Classpath-exception-2.0 OR MIT&quot;
+Expression: GPL-2.0-only WITH Classpath-exception-2.0 OR MIT
+Parsed:     GPL-2.0-only WITH Classpath-exception-2.0 OR MIT
+OR:
+  WITH:
+    License: GPL-2.0-only
+    Exception: Classpath-exception-2.0
+  License: MIT
+</code></pre>
+<h3 id="spdx-expression-validate">spdx expression validate</h3>
+<p>Validate an expression against the SPDX license list:</p>
+<pre><code class="language-bash hljs">$ spdx expression validate &quot;MIT AND Apache-2.0&quot;
+Expression: MIT AND Apache-2.0
+Valid:      yes
+</code></pre>
+<pre><code class="language-bash hljs">$ spdx expression validate &quot;MIT AND FakeLicense&quot;
+Expression: MIT AND FakeLicense
+Valid:      yes
+Warnings:
+  - Unknown license: FakeLicense
+</code></pre>
+<h3 id="spdx-license-list">spdx license list</h3>
+<p>List SPDX licenses with optional filters:</p>
+<pre><code class="language-bash hljs">$ spdx license list
+$ spdx license list --osi    # OSI-approved only
+$ spdx license list --fsf    # FSF libre only
+</code></pre>
+<h3 id="spdx-license-info">spdx license info</h3>
+<p>Show details for a specific license:</p>
+<pre><code class="language-bash hljs">$ spdx license info MIT
+ID:           MIT
+Name:         MIT License
+OSI Approved: yes
+FSF Libre:    yes
+Deprecated:   no
+</code></pre>
+<h3 id="spdx-license-search">spdx license search</h3>
+<p>Search licenses by ID or name:</p>
+<pre><code class="language-bash hljs">$ spdx license search apache
+ID                             Name
+--------------------------------------------------------------------------------
+Apache-1.0                     Apache License 1.0
+Apache-1.1                     Apache License 1.1
+Apache-2.0                     Apache License 2.0
+
+Found: 3 licenses
+</code></pre>
+<h3 id="spdx-validate">spdx validate</h3>
+<p>Validate an SPDX document (JSON or Tag-Value):</p>
+<pre><code class="language-bash hljs">$ spdx validate document.spdx.json
+document.spdx.json: Valid SPDX document
+  Version:   SPDX-2.3
+  Name:      Example
+  Namespace: https://example.org/example
+  Packages:  1
+  Files:     1
+  Relations: 2
+</code></pre>
+<h3 id="spdx-convert">spdx convert</h3>
+<p>Convert between SPDX formats:</p>
+<pre><code class="language-bash hljs"># Tag-Value to JSON
+$ spdx convert document.spdx --format json
+
+# JSON to Tag-Value
+$ spdx convert document.spdx.json --format tv
+</code></pre>
+<h3 id="spdx-version">spdx version</h3>
+<pre><code class="language-bash hljs">$ spdx version
+spdx 0.1.0
+</code></pre>
+
+    <div class="docs-footer">
+      <p>Powered by <a href="https://github.com/hahwul/hwaro">Hwaro</a></p>
+    </div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+</body>
+</html>

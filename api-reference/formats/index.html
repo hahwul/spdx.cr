@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tag-Value and JSON format API reference">
+  <title>Formats - spdx.cr</title>
+  <meta property="og:title" content="Formats">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://spdx.cr.hahwul.com/api-reference/formats/">
+<meta property="og:description" content="Tag-Value and JSON format API reference">
+<meta property="og:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-formats.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Formats">
+<meta name="twitter:description" content="Tag-Value and JSON format API reference">
+<meta name="twitter:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-formats.svg">
+    <link rel="stylesheet" href="https://spdx.cr.hahwul.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  
+</head>
+<body data-section="api-reference">
+<header class="docs-header">
+  <a href="https://spdx.cr.hahwul.com/" class="logo">spdx.cr</a>
+  <nav>
+    <a href="https://spdx.cr.hahwul.com/user-guide/">User Guide</a>
+    <a href="https://spdx.cr.hahwul.com/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-list/">License List</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/documents/">Documents</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/expression/">Expression</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/license/">License</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/document/">Document</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/formats/">Formats</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>Formats</h1>
+    <h2 id="tag-value-format">Tag-Value Format</h2>
+<h3 id="formattagvalueparser">Format::TagValue::Parser</h3>
+<p>Parses SPDX Tag-Value format into a document model.</p>
+<h4 id="parseinput-string-spdxdocument"><code>.parse(input : String) : SpdxDocument</code></h4>
+<pre><code class="language-crystal hljs">doc = Spdx::Format::TagValue::Parser.parse(tag_value_string)
+</code></pre>
+<h4 id="parse-filepath-string-spdxdocument"><code>.parse_file(path : String) : SpdxDocument</code></h4>
+<pre><code class="language-crystal hljs">doc = Spdx::Format::TagValue::Parser.parse_file(&quot;example.spdx&quot;)
+</code></pre>
+<p>Supports:</p>
+<ul>
+<li>Standard <code>Tag: Value</code> pairs</li>
+<li>Multiline values with <code>&lt;text&gt;...&lt;/text&gt;</code></li>
+<li>Section detection (Document, Package, File, Snippet, License, Annotation)</li>
+<li>Relationship parsing with comments</li>
+<li>External document references</li>
+<li>Checksum parsing (all 17 algorithms)</li>
+<li>Repeatable tags: <code>PackageChecksum</code>, <code>FileChecksum</code>, <code>FileType</code>, <code>FileContributor</code>, <code>ExternalRef</code>, <code>PackageLicenseInfoFromFiles</code>, <code>LicenseInfoInFile</code>, <code>LicenseInfoInSnippet</code>, <code>LicenseCrossReference</code>, <code>PackageAttributionText</code>, <code>FileAttributionText</code>, <code>SnippetAttributionText</code></li>
+</ul>
+<h3 id="formattagvaluegenerator">Format::TagValue::Generator</h3>
+<p>Generates SPDX Tag-Value format from a document model.</p>
+<h4 id="generatedoc-spdxdocument-string"><code>.generate(doc : SpdxDocument) : String</code></h4>
+<pre><code class="language-crystal hljs">output = Spdx::Format::TagValue::Generator.generate(doc)
+</code></pre>
+<p>Output order follows the SPDX specification:</p>
+<ol>
+<li>Document header (SPDXVersion, DataLicense, SPDXID, DocumentName, DocumentNamespace)</li>
+<li>Creation info (Creator, Created, LicenseListVersion)</li>
+<li>External document references</li>
+<li>Packages (including checksums, external refs, attribution texts, primary purpose, dates)</li>
+<li>Files (including checksums, contributors, attribution texts)</li>
+<li>Snippets (including license comments, attribution texts)</li>
+<li>Extracted licensing info</li>
+<li>Relationships</li>
+<li>Annotations</li>
+</ol>
+<h2 id="json-format">JSON Format</h2>
+<h3 id="formatjsonparser">Format::Json::Parser</h3>
+<p>Parses SPDX JSON format using <code>JSON::Serializable</code>.</p>
+<h4 id="parseinput-string-spdxdocument-1"><code>.parse(input : String) : SpdxDocument</code></h4>
+<pre><code class="language-crystal hljs">doc = Spdx::Format::Json::Parser.parse(json_string)
+</code></pre>
+<p><strong>Raises:</strong> <code>Spdx::FormatError</code> if the JSON is invalid.</p>
+<h4 id="parse-filepath-string-spdxdocument-1"><code>.parse_file(path : String) : SpdxDocument</code></h4>
+<pre><code class="language-crystal hljs">doc = Spdx::Format::Json::Parser.parse_file(&quot;example.spdx.json&quot;)
+</code></pre>
+<h3 id="formatjsongenerator">Format::Json::Generator</h3>
+<p>Generates SPDX JSON format.</p>
+<h4 id="generatedoc-spdxdocument-pretty-bool-true-string"><code>.generate(doc : SpdxDocument, pretty : Bool = true) : String</code></h4>
+<pre><code class="language-crystal hljs"># Pretty-printed JSON (default)
+json = Spdx::Format::Json::Generator.generate(doc)
+
+# Compact JSON
+json = Spdx::Format::Json::Generator.generate(doc, pretty: false)
+</code></pre>
+<h2 id="round-trip-example">Round-Trip Example</h2>
+<pre><code class="language-crystal hljs"># Read Tag-Value, write JSON
+doc = Spdx::Format::TagValue::Parser.parse_file(&quot;input.spdx&quot;)
+json = Spdx::Format::Json::Generator.generate(doc)
+File.write(&quot;output.spdx.json&quot;, json)
+
+# Read JSON, write Tag-Value
+doc = Spdx::Format::Json::Parser.parse_file(&quot;input.spdx.json&quot;)
+tv = Spdx::Format::TagValue::Generator.generate(doc)
+File.write(&quot;output.spdx&quot;, tv)
+</code></pre>
+
+    <div class="docs-footer">
+      <p>Powered by <a href="https://github.com/hahwul/hwaro">Hwaro</a></p>
+    </div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+</body>
+</html>

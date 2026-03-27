@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SPDX 2.3 document model API reference">
+  <title>Document - spdx.cr</title>
+  <meta property="og:title" content="Document">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://spdx.cr.hahwul.com/api-reference/document/">
+<meta property="og:description" content="SPDX 2.3 document model API reference">
+<meta property="og:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-document.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Document">
+<meta name="twitter:description" content="SPDX 2.3 document model API reference">
+<meta name="twitter:image" content="https://spdx.cr.hahwul.com/og-images/api-reference-document.svg">
+    <link rel="stylesheet" href="https://spdx.cr.hahwul.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  
+</head>
+<body data-section="api-reference">
+<header class="docs-header">
+  <a href="https://spdx.cr.hahwul.com/" class="logo">spdx.cr</a>
+  <nav>
+    <a href="https://spdx.cr.hahwul.com/user-guide/">User Guide</a>
+    <a href="https://spdx.cr.hahwul.com/api-reference/">API Reference</a>
+    <a href="https://github.com/hahwul/spdx.cr">GitHub</a>
+  </nav>
+</header>
+<div class="docs-container">
+  <aside class="docs-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">User Guide</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/getting-started/">Getting Started</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-expressions/">License Expressions</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/license-list/">License List</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/documents/">Documents</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/user-guide/cli/">CLI</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <ul class="sidebar-links">
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/expression/">Expression</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/license/">License</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/document/">Document</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/formats/">Formats</a></li>
+        <li><a href="https://spdx.cr.hahwul.com/api-reference/errors/">Errors</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main class="docs-main">
+    <h1>Document</h1>
+    <h2 id="spdxspdxdocument">Spdx::SpdxDocument</h2>
+<p>The root class representing an SPDX 2.3 document. Includes <code>JSON::Serializable</code>.</p>
+<h3 id="properties">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spdx_version</code></td>
+<td><code>String</code></td>
+<td><code>spdxVersion</code></td>
+<td>SPDX spec version (e.g., <code>&quot;SPDX-2.3&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>data_license</code></td>
+<td><code>String</code></td>
+<td><code>dataLicense</code></td>
+<td>Must be <code>&quot;CC0-1.0&quot;</code></td>
+</tr>
+<tr>
+<td><code>spdx_id</code></td>
+<td><code>String</code></td>
+<td><code>SPDXID</code></td>
+<td>Must be <code>&quot;SPDXRef-DOCUMENT&quot;</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td><code>name</code></td>
+<td>Document name</td>
+</tr>
+<tr>
+<td><code>document_namespace</code></td>
+<td><code>String</code></td>
+<td><code>documentNamespace</code></td>
+<td>Unique document URI</td>
+</tr>
+<tr>
+<td><code>creation_info</code></td>
+<td><code>CreationInfo</code></td>
+<td><code>creationInfo</code></td>
+<td>Creation metadata</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+<td>Optional comment</td>
+</tr>
+<tr>
+<td><code>external_document_refs</code></td>
+<td><code>Array(ExternalDocumentRef)?</code></td>
+<td><code>externalDocumentRefs</code></td>
+<td>References to other SPDX docs</td>
+</tr>
+<tr>
+<td><code>packages</code></td>
+<td><code>Array(Package)?</code></td>
+<td><code>packages</code></td>
+<td>Packages described</td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td><code>Array(FileInfo)?</code></td>
+<td><code>files</code></td>
+<td>Files described</td>
+</tr>
+<tr>
+<td><code>snippets</code></td>
+<td><code>Array(Snippet)?</code></td>
+<td><code>snippets</code></td>
+<td>Snippets described</td>
+</tr>
+<tr>
+<td><code>relationships</code></td>
+<td><code>Array(Relationship)?</code></td>
+<td><code>relationships</code></td>
+<td>Element relationships</td>
+</tr>
+<tr>
+<td><code>annotations</code></td>
+<td><code>Array(Annotation)?</code></td>
+<td><code>annotations</code></td>
+<td>Annotations</td>
+</tr>
+<tr>
+<td><code>extracted_licensing_infos</code></td>
+<td><code>Array(ExtractedLicensingInfo)?</code></td>
+<td><code>hasExtractedLicensingInfos</code></td>
+<td>Custom license definitions</td>
+</tr>
+<tr>
+<td><code>document_describes</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>documentDescribes</code></td>
+<td>Top-level described elements</td>
+</tr>
+</tbody>
+</table>
+<h3 id="validate-arraystring"><code>#validate : Array(String)</code></h3>
+<p>Returns a list of validation error messages. Empty if the document is valid.</p>
+<p>Validation rules:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spdxVersion</code></td>
+<td>Must be <code>&quot;SPDX-2.3&quot;</code></td>
+</tr>
+<tr>
+<td><code>dataLicense</code></td>
+<td>Must be <code>&quot;CC0-1.0&quot;</code></td>
+</tr>
+<tr>
+<td><code>SPDXID</code></td>
+<td>Must be <code>&quot;SPDXRef-DOCUMENT&quot;</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>Must not be empty</td>
+</tr>
+<tr>
+<td><code>documentNamespace</code></td>
+<td>Must be a valid HTTP(S) URI</td>
+</tr>
+<tr>
+<td><code>creationInfo.created</code></td>
+<td>Must be ISO 8601 format (<code>YYYY-MM-DDThh:mm:ssZ</code>)</td>
+</tr>
+<tr>
+<td><code>creationInfo.creators</code></td>
+<td>Must not be empty; each must start with <code>Tool:</code>, <code>Organization:</code>, or <code>Person:</code></td>
+</tr>
+<tr>
+<td>SPDXID format</td>
+<td>All SPDXIDs must match <code>SPDXRef-[a-zA-Z0-9.-]+</code></td>
+</tr>
+<tr>
+<td>DESCRIBES relationship</td>
+<td>At least one DESCRIBES relationship is required</td>
+</tr>
+<tr>
+<td>Package fields</td>
+<td><code>SPDXID</code>, <code>name</code>, <code>downloadLocation</code>, <code>licenseConcluded</code>, <code>licenseDeclared</code>, <code>copyrightText</code> required</td>
+</tr>
+<tr>
+<td>Package verification code</td>
+<td>Required when <code>filesAnalyzed</code> is <code>true</code> (default)</td>
+</tr>
+<tr>
+<td>File fields</td>
+<td><code>SPDXID</code>, <code>fileName</code>, <code>licenseConcluded</code>, <code>copyrightText</code> required</td>
+</tr>
+<tr>
+<td>Snippet fields</td>
+<td><code>SPDXID</code>, <code>snippetFromFile</code>, <code>ranges</code>, <code>licenseConcluded</code>, <code>copyrightText</code> required</td>
+</tr>
+<tr>
+<td>Relationship fields</td>
+<td><code>spdxElementId</code>, <code>relatedSpdxElement</code> required</td>
+</tr>
+</tbody>
+</table>
+<h3 id="valid-bool"><code>#valid? : Bool</code></h3>
+<p>Returns <code>true</code> if the document passes validation.</p>
+<h2 id="spdxcreationinfo">Spdx::CreationInfo</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>created</code></td>
+<td><code>String</code></td>
+<td><code>created</code></td>
+<td>ISO 8601 timestamp</td>
+</tr>
+<tr>
+<td><code>creators</code></td>
+<td><code>Array(String)</code></td>
+<td><code>creators</code></td>
+<td>Creator identifiers (<code>Tool:</code>, <code>Organization:</code>, <code>Person:</code> prefix)</td>
+</tr>
+<tr>
+<td><code>license_list_version</code></td>
+<td><code>String?</code></td>
+<td><code>licenseListVersion</code></td>
+<td>SPDX license list version used</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+<td>Creator comment</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxpackage">Spdx::Package</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spdx_id</code></td>
+<td><code>String</code></td>
+<td><code>SPDXID</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td><code>name</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>download_location</code></td>
+<td><code>String</code></td>
+<td><code>downloadLocation</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>license_concluded</code></td>
+<td><code>String</code></td>
+<td><code>licenseConcluded</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>license_declared</code></td>
+<td><code>String</code></td>
+<td><code>licenseDeclared</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>copyright_text</code></td>
+<td><code>String</code></td>
+<td><code>copyrightText</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>version_info</code></td>
+<td><code>String?</code></td>
+<td><code>versionInfo</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>package_file_name</code></td>
+<td><code>String?</code></td>
+<td><code>packageFileName</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>supplier</code></td>
+<td><code>String?</code></td>
+<td><code>supplier</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>originator</code></td>
+<td><code>String?</code></td>
+<td><code>originator</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>files_analyzed</code></td>
+<td><code>Bool?</code></td>
+<td><code>filesAnalyzed</code></td>
+<td>No (default: <code>true</code>)</td>
+</tr>
+<tr>
+<td><code>package_verification_code</code></td>
+<td><code>PackageVerificationCode?</code></td>
+<td><code>packageVerificationCode</code></td>
+<td>Conditional</td>
+</tr>
+<tr>
+<td><code>checksums</code></td>
+<td><code>Array(Checksum)?</code></td>
+<td><code>checksums</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>homepage</code></td>
+<td><code>String?</code></td>
+<td><code>homepage</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>source_info</code></td>
+<td><code>String?</code></td>
+<td><code>sourceInfo</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>license_info_from_files</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>licenseInfoFromFiles</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>license_comments</code></td>
+<td><code>String?</code></td>
+<td><code>licenseComments</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td><code>String?</code></td>
+<td><code>summary</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>String?</code></td>
+<td><code>description</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>external_refs</code></td>
+<td><code>Array(ExternalRef)?</code></td>
+<td><code>externalRefs</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>attribution_texts</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>attributionTexts</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>primary_package_purpose</code></td>
+<td><code>PrimaryPackagePurpose?</code></td>
+<td><code>primaryPackagePurpose</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>release_date</code></td>
+<td><code>String?</code></td>
+<td><code>releaseDate</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>built_date</code></td>
+<td><code>String?</code></td>
+<td><code>builtDate</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>valid_until_date</code></td>
+<td><code>String?</code></td>
+<td><code>validUntilDate</code></td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxprimarypackagepurpose">Spdx::PrimaryPackagePurpose</h2>
+<p>Enum for package purpose classification per SPDX 2.3:</p>
+<p><code>APPLICATION</code>, <code>FRAMEWORK</code>, <code>LIBRARY</code>, <code>CONTAINER</code>, <code>OPERATING_SYSTEM</code>, <code>DEVICE</code>, <code>FIRMWARE</code>, <code>SOURCE</code>, <code>ARCHIVE</code>, <code>FILE</code>, <code>INSTALL</code>, <code>OTHER</code></p>
+<pre><code class="language-crystal hljs">purpose = Spdx::PrimaryPackagePurpose.from_string(&quot;LIBRARY&quot;)
+purpose.to_s  # =&gt; &quot;LIBRARY&quot;
+</code></pre>
+<p>Note: <code>OPERATING_SYSTEM</code> serializes as <code>&quot;OPERATING-SYSTEM&quot;</code> in JSON and Tag-Value.</p>
+<h2 id="spdxfileinfo">Spdx::FileInfo</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spdx_id</code></td>
+<td><code>String</code></td>
+<td><code>SPDXID</code></td>
+</tr>
+<tr>
+<td><code>file_name</code></td>
+<td><code>String</code></td>
+<td><code>fileName</code></td>
+</tr>
+<tr>
+<td><code>file_types</code></td>
+<td><code>Array(FileType)?</code></td>
+<td><code>fileTypes</code></td>
+</tr>
+<tr>
+<td><code>checksums</code></td>
+<td><code>Array(Checksum)?</code></td>
+<td><code>checksums</code></td>
+</tr>
+<tr>
+<td><code>license_concluded</code></td>
+<td><code>String</code></td>
+<td><code>licenseConcluded</code></td>
+</tr>
+<tr>
+<td><code>license_info_in_files</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>licenseInfoInFiles</code></td>
+</tr>
+<tr>
+<td><code>copyright_text</code></td>
+<td><code>String</code></td>
+<td><code>copyrightText</code></td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+</tr>
+<tr>
+<td><code>notice_text</code></td>
+<td><code>String?</code></td>
+<td><code>noticeText</code></td>
+</tr>
+<tr>
+<td><code>file_contributors</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>fileContributors</code></td>
+</tr>
+<tr>
+<td><code>attribution_texts</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>attributionTexts</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxfiletype">Spdx::FileType</h2>
+<p>Enum for file type classification per SPDX 2.3:</p>
+<p><code>SOURCE</code>, <code>BINARY</code>, <code>ARCHIVE</code>, <code>APPLICATION</code>, <code>AUDIO</code>, <code>IMAGE</code>, <code>TEXT</code>, <code>VIDEO</code>, <code>DOCUMENTATION</code>, <code>SPDX</code>, <code>OTHER</code></p>
+<pre><code class="language-crystal hljs">ft = Spdx::FileType.from_string(&quot;SOURCE&quot;)
+ft.to_s  # =&gt; &quot;SOURCE&quot;
+</code></pre>
+<h2 id="spdxsnippet">Spdx::Snippet</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spdx_id</code></td>
+<td><code>String</code></td>
+<td><code>SPDXID</code></td>
+</tr>
+<tr>
+<td><code>snippet_from_file</code></td>
+<td><code>String</code></td>
+<td><code>snippetFromFile</code></td>
+</tr>
+<tr>
+<td><code>ranges</code></td>
+<td><code>Array(SnippetRange)</code></td>
+<td><code>ranges</code></td>
+</tr>
+<tr>
+<td><code>license_concluded</code></td>
+<td><code>String</code></td>
+<td><code>licenseConcluded</code></td>
+</tr>
+<tr>
+<td><code>copyright_text</code></td>
+<td><code>String</code></td>
+<td><code>copyrightText</code></td>
+</tr>
+<tr>
+<td><code>license_info_in_snippets</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>licenseInfoInSnippets</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String?</code></td>
+<td><code>name</code></td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+</tr>
+<tr>
+<td><code>license_comments</code></td>
+<td><code>String?</code></td>
+<td><code>licenseComments</code></td>
+</tr>
+<tr>
+<td><code>attribution_texts</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>attributionTexts</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxrelationship">Spdx::Relationship</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spdx_element_id</code></td>
+<td><code>String</code></td>
+<td><code>spdxElementId</code></td>
+</tr>
+<tr>
+<td><code>relationship_type</code></td>
+<td><code>RelationshipType</code></td>
+<td><code>relationshipType</code></td>
+</tr>
+<tr>
+<td><code>related_spdx_element</code></td>
+<td><code>String</code></td>
+<td><code>relatedSpdxElement</code></td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxrelationshiptype">Spdx::RelationshipType</h2>
+<p>Enum with 44 relationship types:</p>
+<p><code>DESCRIBES</code>, <code>DESCRIBED_BY</code>, <code>CONTAINS</code>, <code>CONTAINED_BY</code>, <code>DEPENDS_ON</code>, <code>DEPENDENCY_OF</code>, <code>GENERATES</code>, <code>GENERATED_FROM</code>, <code>ANCESTOR_OF</code>, <code>DESCENDANT_OF</code>, <code>VARIANT_OF</code>, <code>DISTRIBUTION_ARTIFACT</code>, <code>PATCH_FOR</code>, <code>COPY_OF</code>, <code>FILE_ADDED</code>, <code>FILE_DELETED</code>, <code>FILE_MODIFIED</code>, <code>EXPANDED_FROM_ARCHIVE</code>, <code>DYNAMIC_LINK</code>, <code>STATIC_LINK</code>, <code>DATA_FILE_OF</code>, <code>TEST_CASE_OF</code>, <code>BUILD_TOOL_OF</code>, <code>DEV_TOOL_OF</code>, <code>TEST_OF</code>, <code>TEST_TOOL_OF</code>, <code>DOCUMENTATION_OF</code>, <code>OPTIONAL_COMPONENT_OF</code>, <code>GENERATED_FROM_COPY</code>, <code>PACKAGE_OF</code>, <code>HAS_PREREQUISITE</code>, <code>PREREQUISITE_FOR</code>, <code>OTHER</code>, <code>RUNTIME_DEPENDENCY_OF</code>, <code>DEV_DEPENDENCY_OF</code>, <code>OPTIONAL_DEPENDENCY_OF</code>, <code>PROVIDED_DEPENDENCY_OF</code>, <code>TEST_DEPENDENCY_OF</code>, <code>BUILD_DEPENDENCY_OF</code>, <code>EXAMPLE_OF</code>, <code>GENERATES_COPY</code>, <code>REQUIREMENT_DESCRIPTION_FOR</code>, <code>SPECIFICATION_FOR</code>, <code>VARIANT_DISTRIBUTION_OF</code>, <code>SECURITY_FIX_FOR</code>, <code>AFFECTS</code></p>
+<h2 id="spdxchecksumalgorithm">Spdx::ChecksumAlgorithm</h2>
+<p>Enum: <code>SHA1</code>, <code>SHA224</code>, <code>SHA256</code>, <code>SHA384</code>, <code>SHA512</code>, <code>SHA3_256</code>, <code>SHA3_384</code>, <code>SHA3_512</code>, <code>BLAKE2b_256</code>, <code>BLAKE2b_384</code>, <code>BLAKE2b_512</code>, <code>BLAKE3</code>, <code>MD2</code>, <code>MD4</code>, <code>MD5</code>, <code>MD6</code>, <code>ADLER32</code></p>
+<h2 id="spdxchecksum">Spdx::Checksum</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>algorithm</code></td>
+<td><code>ChecksumAlgorithm</code></td>
+<td><code>algorithm</code></td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td><code>String</code></td>
+<td><code>checksumValue</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxannotation">Spdx::Annotation</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>annotation_date</code></td>
+<td><code>String</code></td>
+<td><code>annotationDate</code></td>
+</tr>
+<tr>
+<td><code>annotation_type</code></td>
+<td><code>AnnotationType</code></td>
+<td><code>annotationType</code></td>
+</tr>
+<tr>
+<td><code>annotator</code></td>
+<td><code>String</code></td>
+<td><code>annotator</code></td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String</code></td>
+<td><code>comment</code></td>
+</tr>
+<tr>
+<td><code>spdx_element_id</code></td>
+<td><code>String?</code></td>
+<td><code>spdxElementId</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxexternalref">Spdx::ExternalRef</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reference_category</code></td>
+<td><code>ExternalRefCategory</code></td>
+<td><code>referenceCategory</code></td>
+</tr>
+<tr>
+<td><code>reference_type</code></td>
+<td><code>String</code></td>
+<td><code>referenceType</code></td>
+</tr>
+<tr>
+<td><code>reference_locator</code></td>
+<td><code>String</code></td>
+<td><code>referenceLocator</code></td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxexternalrefcategory">Spdx::ExternalRefCategory</h2>
+<p>Enum for external reference categories per SPDX 2.3:</p>
+<p><code>SECURITY</code>, <code>PACKAGE_MANAGER</code>, <code>PERSISTENT_ID</code>, <code>OTHER</code></p>
+<pre><code class="language-crystal hljs">cat = Spdx::ExternalRefCategory.from_string(&quot;PACKAGE-MANAGER&quot;)
+cat.to_s  # =&gt; &quot;PACKAGE-MANAGER&quot;
+</code></pre>
+<p>Note: <code>PACKAGE_MANAGER</code> serializes as <code>&quot;PACKAGE-MANAGER&quot;</code> and <code>PERSISTENT_ID</code> as <code>&quot;PERSISTENT-ID&quot;</code>.</p>
+<h2 id="spdxexternaldocumentref">Spdx::ExternalDocumentRef</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>external_document_id</code></td>
+<td><code>String</code></td>
+<td><code>externalDocumentId</code></td>
+</tr>
+<tr>
+<td><code>spdx_document</code></td>
+<td><code>String</code></td>
+<td><code>spdxDocument</code></td>
+</tr>
+<tr>
+<td><code>checksum</code></td>
+<td><code>Checksum</code></td>
+<td><code>checksum</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxextractedlicensinginfo">Spdx::ExtractedLicensingInfo</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>license_id</code></td>
+<td><code>String</code></td>
+<td><code>licenseId</code></td>
+</tr>
+<tr>
+<td><code>extracted_text</code></td>
+<td><code>String</code></td>
+<td><code>extractedText</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String?</code></td>
+<td><code>name</code></td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td><code>String?</code></td>
+<td><code>comment</code></td>
+</tr>
+<tr>
+<td><code>see_alsos</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>seeAlsos</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="spdxpackageverificationcode">Spdx::PackageVerificationCode</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type</th>
+<th>JSON Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>value</code></td>
+<td><code>String</code></td>
+<td><code>packageVerificationCodeValue</code></td>
+</tr>
+<tr>
+<td><code>excluded_files</code></td>
+<td><code>Array(String)?</code></td>
+<td><code>packageVerificationCodeExcludedFiles</code></td>
+</tr>
+</tbody>
+</table>
+
+    <div class="docs-footer">
+      <p>Powered by <a href="https://github.com/hahwul/hwaro">Hwaro</a></p>
+    </div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+</body>
+</html>
