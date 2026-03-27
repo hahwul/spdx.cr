@@ -1,6 +1,6 @@
 title = "spdx.cr"
 description = "Crystal implementation of the SPDX specification"
-base_url = ""
+base_url = "https://spdx.cr.hahwul.com"
 
 [plugins]
 processors = ["markdown"]
