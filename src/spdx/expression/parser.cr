@@ -1,8 +1,15 @@
 module Spdx
   module Expression
     class Parser
+      # Hard cap on how deep parenthesised SPDX expressions may nest. SPDX
+      # license expressions never need real-world depth in the hundreds —
+      # this defends the recursive-descent parser against stack-overflow
+      # DoS from a hostile SBOM (e.g. ten thousand nested parens).
+      MAX_DEPTH = 256
+
       @tokens : Array(Token)
       @pos : Int32 = 0
+      @depth : Int32 = 0
 
       def self.parse(input : String) : Node
         new(input).parse
@@ -58,7 +65,15 @@ module Spdx
         case current.type
         when .l_paren?
           advance # consume '('
-          node = parse_or
+          if @depth >= MAX_DEPTH
+            raise ParseError.new("Expression nesting exceeds maximum depth (#{MAX_DEPTH}) at position #{current.position}")
+          end
+          @depth += 1
+          begin
+            node = parse_or
+          ensure
+            @depth -= 1
+          end
           expect(TokenType::RParen, "Expected ')'")
           node
         when .license_id?
