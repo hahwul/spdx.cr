@@ -96,4 +96,21 @@ describe Spdx::Expression::Parser do
       Spdx::Expression::Parser.parse("MIT AND")
     end
   end
+
+  it "raises on excessive parenthesis nesting instead of overflowing the stack" do
+    # Without a depth cap this exhausts the call stack as parse_or →
+    # parse_and → parse_with → parse_primary → parse_or recurses on each
+    # nested '('.
+    nesting = 10_000
+    expr = ("(" * nesting) + "MIT" + (")" * nesting)
+    expect_raises(Spdx::ParseError, /maximum depth/) do
+      Spdx::Expression::Parser.parse(expr)
+    end
+  end
+
+  it "still parses expressions just under the depth cap" do
+    nesting = Spdx::Expression::Parser::MAX_DEPTH - 1
+    expr = ("(" * nesting) + "MIT" + (")" * nesting)
+    Spdx::Expression::Parser.parse(expr).should_not be_nil
+  end
 end
