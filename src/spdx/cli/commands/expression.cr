@@ -18,7 +18,7 @@ module Spdx
           result = Spdx.validate_expression(expr)
           puts "Expression: #{expr}"
           puts "Valid:      yes"
-          if result.warnings.any?
+          if result.warnings.present?
             puts "Warnings:"
             result.warnings.each { |w| puts "  - #{w}" }
           end

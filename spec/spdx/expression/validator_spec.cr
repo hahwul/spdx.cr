@@ -19,7 +19,7 @@ describe Spdx::Expression::Validator do
   it "warns about deprecated licenses" do
     ast = Spdx::Expression::Parser.parse("GPL-2.0")
     result = Spdx::Expression::Validator.validate(ast)
-    result.warnings.any? { |w| w.includes?("Deprecated") }.should be_true
+    result.warnings.any?(&.includes?("Deprecated")).should be_true
   end
 
   it "validates WITH exceptions" do
@@ -31,7 +31,7 @@ describe Spdx::Expression::Validator do
   it "warns about unknown exceptions" do
     ast = Spdx::Expression::Parser.parse("MIT WITH FakeException-1.0")
     result = Spdx::Expression::Validator.validate(ast)
-    result.warnings.any? { |w| w.includes?("Unknown exception") }.should be_true
+    result.warnings.any?(&.includes?("Unknown exception")).should be_true
   end
 
   it "accepts LicenseRef without warnings" do

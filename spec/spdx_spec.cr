@@ -34,7 +34,7 @@ describe Spdx do
     it "warns about unknown licenses" do
       result = Spdx.validate_expression("MIT AND FakeLicense-1.0")
       result.valid?.should be_true
-      result.warnings.any? { |w| w.includes?("Unknown license") }.should be_true
+      result.warnings.any?(&.includes?("Unknown license")).should be_true
     end
   end
 

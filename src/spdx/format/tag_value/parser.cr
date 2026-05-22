@@ -435,7 +435,6 @@ module Spdx
               see_alsos = case v = e["LicenseCrossReference"]?
                           when Array(String) then v
                           when String        then [v]
-                          else                    nil
                           end
 
               ExtractedLicensingInfo.new(
@@ -490,7 +489,6 @@ module Spdx
             pkg.license_info_from_files = case li
                                           when Array(String) then li
                                           when String        then [li]
-                                          else                    nil
                                           end
           end
 
@@ -502,7 +500,6 @@ module Spdx
             pkg.attribution_texts = case at
                                     when Array(String) then at
                                     when String        then [at]
-                                    else                    nil
                                     end
           end
 
@@ -514,8 +511,6 @@ module Spdx
             parts = vc.split(/\s*\(excludes:\s*/, 2)
             excluded = if parts.size > 1
                          [parts[1].rstrip(')')]
-                       else
-                         nil
                        end
             pkg.package_verification_code = PackageVerificationCode.new(parts[0].strip, excluded)
           end
@@ -535,7 +530,6 @@ module Spdx
             values = case ft
                      when Array(String) then ft
                      when String        then [ft]
-                     else                    nil
                      end
             if values
               fi.file_types = values.map { |v| FileType.from_string(v) }
@@ -546,7 +540,6 @@ module Spdx
             fi.license_info_in_files = case li
                                        when Array(String) then li
                                        when String        then [li]
-                                       else                    nil
                                        end
           end
 
@@ -557,7 +550,6 @@ module Spdx
             fi.file_contributors = case fc
                                    when Array(String) then fc
                                    when String        then [fc]
-                                   else                    nil
                                    end
           end
 
@@ -565,7 +557,6 @@ module Spdx
             fi.attribution_texts = case at
                                    when Array(String) then at
                                    when String        then [at]
-                                   else                    nil
                                    end
           end
 
@@ -623,7 +614,6 @@ module Spdx
             snippet.license_info_in_snippets = case li
                                                when Array(String) then li
                                                when String        then [li]
-                                               else                    nil
                                                end
           end
 
@@ -631,7 +621,6 @@ module Spdx
             snippet.attribution_texts = case at
                                         when Array(String) then at
                                         when String        then [at]
-                                        else                    nil
                                         end
           end
 
@@ -676,7 +665,7 @@ module Spdx
             values = case er
                      when Array(String) then er
                      when String        then [er]
-                     else                    return nil
+                     else                    return
                      end
 
             values.each do |v|
