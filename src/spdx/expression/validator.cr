@@ -18,9 +18,7 @@ module Spdx
       private def self.validate_node(node : Node, warnings : Array(String))
         case node
         when LicenseNode
-          unless LicenseList.license?(node.id)
-            warnings << "Unknown license: #{node.id}"
-          else
+          if LicenseList.license?(node.id)
             lic = LicenseList.find_license(node.id)
             if lic.deprecated?
               warnings << "Deprecated license: #{node.id}"
@@ -28,16 +26,18 @@ module Spdx
             if lic.id != node.id
               warnings << "Non-canonical casing: '#{node.id}' should be '#{lic.id}'"
             end
+          else
+            warnings << "Unknown license: #{node.id}"
           end
         when WithExceptionNode
           validate_node(node.license, warnings)
-          unless LicenseList.exception?(node.exception)
-            warnings << "Unknown exception: #{node.exception}"
-          else
+          if LicenseList.exception?(node.exception)
             exc = LicenseList.find_exception(node.exception)
             if exc.deprecated?
               warnings << "Deprecated exception: #{node.exception}"
             end
+          else
+            warnings << "Unknown exception: #{node.exception}"
           end
         when LicenseRefNode
           # LicenseRef and DocumentRef are user-defined, always valid

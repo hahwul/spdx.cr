@@ -170,7 +170,7 @@ module Spdx
                 tag_multiline("FileNotice", n)
               end
               if contribs = f.file_contributors
-                contribs.each { |c| tag("FileContributor", c) }
+                contribs.each { |contrib| tag("FileContributor", contrib) }
               end
               if at = f.attribution_texts
                 at.each { |a| tag_multiline("FileAttributionText", a) }

@@ -1,5 +1,11 @@
 name: spdx
 version: 0.1.0
+description: |
+  Crystal library and CLI for SPDX (Software Package Data Exchange).
+  Parses and serializes SPDX documents in tag-value and JSON formats.
+repository: https://github.com/hahwul/spdx.cr
+homepage: https://github.com/hahwul/spdx.cr
+documentation: https://github.com/hahwul/spdx.cr#readme
 
 authors:
   - hahwul <hahwul@gmail.com>
@@ -11,3 +17,8 @@ license: MIT
 targets:
   spdx:
     main: src/cli.cr
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    branch: master

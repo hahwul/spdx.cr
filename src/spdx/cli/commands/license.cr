@@ -38,7 +38,7 @@ module Spdx
           STDERR.puts "Error: #{ex.message}"
           # Try searching
           results = LicenseList.search(id)
-          if results.any?
+          if results.present?
             STDERR.puts "\nDid you mean:"
             results.first(5).each { |r| STDERR.puts "  #{r.id} - #{r.name}" }
           end

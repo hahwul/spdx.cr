@@ -83,7 +83,7 @@ describe Spdx::SpdxDocument do
         creators: ["invalid-creator"]
       )
     )
-    doc.validate.any? { |e| e.includes?("Tool:") }.should be_true
+    doc.validate.any?(&.includes?("Tool:")).should be_true
   end
 
   it "validates created date ISO 8601 format" do
@@ -98,7 +98,7 @@ describe Spdx::SpdxDocument do
         creators: ["Tool: test"]
       )
     )
-    doc.validate.any? { |e| e.includes?("ISO 8601") }.should be_true
+    doc.validate.any?(&.includes?("ISO 8601")).should be_true
   end
 
   it "validates DESCRIBES relationship is required" do
@@ -138,7 +138,7 @@ describe Spdx::SpdxDocument do
         copyright_text: "Copyright 2024"
       ),
     ]
-    doc.validate.any? { |e| e.includes?("packageVerificationCode") }.should be_true
+    doc.validate.any?(&.includes?("packageVerificationCode")).should be_true
   end
 
   it "serializes to JSON" do
