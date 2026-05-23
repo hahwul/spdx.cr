@@ -8,7 +8,7 @@ require "../src/spdx"
 # with the other — this is the typical "convert" use case.
 
 json_path = File.expand_path("../spec/fixtures/example.spdx.json", __DIR__)
-tv_path   = File.expand_path("../spec/fixtures/example.spdx", __DIR__)
+tv_path = File.expand_path("../spec/fixtures/example.spdx", __DIR__)
 
 puts "--- Parse JSON ---"
 doc = Spdx::Format::Json::Parser.parse_file(json_path)
