@@ -53,6 +53,16 @@ spdx validate document.spdx.json
 spdx convert document.spdx --format json
 ```
 
+## Examples
+
+Runnable examples live in [`examples/`](./examples):
+
+```bash
+crystal run examples/basic.cr           # parse, valid_expression?, validate_expression
+crystal run examples/license_lookup.cr  # SPDX license & exception lookup with metadata
+crystal run examples/document_io.cr     # JSON ↔ Tag-Value document conversion
+```
+
 ## Features
 
 - License expression parser with full operator precedence (AND, OR, WITH, +)

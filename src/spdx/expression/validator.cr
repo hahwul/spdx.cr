@@ -1,21 +1,37 @@
 module Spdx
   module Expression
+    # Result of validating an SPDX license expression AST.
+    #
+    # The validator splits findings into two buckets:
+    #
+    # * `errors`   — issues that mean the expression cannot be interpreted as a
+    #                real SPDX expression (unknown license identifier, unknown
+    #                exception). `valid?` is `false` whenever `errors` is
+    #                non-empty.
+    # * `warnings` — issues that are still parseable but should be cleaned up
+    #                (deprecated identifier, non-canonical casing).
     struct ValidationResult
+      getter errors : Array(String)
       getter warnings : Array(String)
-      getter? valid : Bool
 
-      def initialize(@valid : Bool, @warnings : Array(String) = [] of String)
+      def initialize(@errors : Array(String) = [] of String,
+                     @warnings : Array(String) = [] of String)
+      end
+
+      def valid? : Bool
+        @errors.empty?
       end
     end
 
     class Validator
       def self.validate(node : Node) : ValidationResult
+        errors = [] of String
         warnings = [] of String
-        validate_node(node, warnings)
-        ValidationResult.new(valid: true, warnings: warnings)
+        validate_node(node, errors, warnings)
+        ValidationResult.new(errors: errors, warnings: warnings)
       end
 
-      private def self.validate_node(node : Node, warnings : Array(String))
+      private def self.validate_node(node : Node, errors : Array(String), warnings : Array(String))
         case node
         when LicenseNode
           if LicenseList.license?(node.id)
@@ -27,23 +43,23 @@ module Spdx
               warnings << "Non-canonical casing: '#{node.id}' should be '#{lic.id}'"
             end
           else
-            warnings << "Unknown license: #{node.id}"
+            errors << "Unknown license: #{node.id}"
           end
         when WithExceptionNode
-          validate_node(node.license, warnings)
+          validate_node(node.license, errors, warnings)
           if LicenseList.exception?(node.exception)
             exc = LicenseList.find_exception(node.exception)
             if exc.deprecated?
               warnings << "Deprecated exception: #{node.exception}"
             end
           else
-            warnings << "Unknown exception: #{node.exception}"
+            errors << "Unknown exception: #{node.exception}"
           end
         when LicenseRefNode
           # LicenseRef and DocumentRef are user-defined, always valid
         when CompoundNode
-          validate_node(node.left, warnings)
-          validate_node(node.right, warnings)
+          validate_node(node.left, errors, warnings)
+          validate_node(node.right, errors, warnings)
         end
       end
     end

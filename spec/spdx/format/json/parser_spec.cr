@@ -9,6 +9,13 @@ describe Spdx::Format::Json::Parser do
     doc.valid?.should be_true
   end
 
+  it "is reachable via the Spdx::Format::JSON alias (stdlib-style casing)" do
+    Spdx::Format::JSON::Parser.should eq(Spdx::Format::Json::Parser)
+    Spdx::Format::JSON::Generator.should eq(Spdx::Format::Json::Generator)
+    doc = Spdx::Format::JSON::Parser.parse_file("spec/fixtures/example.spdx.json")
+    doc.name.should eq("Example")
+  end
+
   it "parses packages" do
     doc = Spdx::Format::Json::Parser.parse_file("spec/fixtures/example.spdx.json")
     pkgs = doc.packages.not_nil!

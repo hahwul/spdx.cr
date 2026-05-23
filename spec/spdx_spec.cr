@@ -28,13 +28,14 @@ describe Spdx do
     it "validates known licenses" do
       result = Spdx.validate_expression("MIT AND Apache-2.0")
       result.valid?.should be_true
+      result.errors.should be_empty
       result.warnings.should be_empty
     end
 
-    it "warns about unknown licenses" do
+    it "reports unknown licenses as errors" do
       result = Spdx.validate_expression("MIT AND FakeLicense-1.0")
-      result.valid?.should be_true
-      result.warnings.any?(&.includes?("Unknown license")).should be_true
+      result.valid?.should be_false
+      result.errors.any?(&.includes?("Unknown license")).should be_true
     end
   end
 

@@ -11,6 +11,7 @@ require "./spdx/expression/formatter"
 require "./spdx/document/*"
 require "./spdx/format/tag_value/*"
 require "./spdx/format/json/*"
+require "./spdx/format/json_alias"
 
 module Spdx
   def self.parse(expression : String) : Expression::Node
