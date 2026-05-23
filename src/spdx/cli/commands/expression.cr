@@ -17,11 +17,16 @@ module Spdx
         def validate_expression(expr : String)
           result = Spdx.validate_expression(expr)
           puts "Expression: #{expr}"
-          puts "Valid:      yes"
+          puts "Valid:      #{result.valid? ? "yes" : "no"}"
+          if result.errors.present?
+            puts "Errors:"
+            result.errors.each { |e| puts "  - #{e}" }
+          end
           if result.warnings.present?
             puts "Warnings:"
             result.warnings.each { |w| puts "  - #{w}" }
           end
+          exit 1 unless result.valid?
         rescue ex : ParseError
           STDERR.puts "Expression: #{expr}"
           STDERR.puts "Valid:      no"
