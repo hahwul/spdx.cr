@@ -17,6 +17,32 @@ module Spdx
       end
     end
 
+    # The SPDX reserved values `NONE` and `NOASSERTION`. They are legal,
+    # standalone values wherever a license expression is expected (e.g.
+    # `licenseConcluded`/`licenseDeclared`) but cannot be combined with
+    # other licenses via AND/OR/WITH.
+    class ReservedNode < Node
+      NONE        = "NONE"
+      NOASSERTION = "NOASSERTION"
+
+      getter value : String
+
+      def initialize(@value : String)
+      end
+
+      def none? : Bool
+        @value == NONE
+      end
+
+      def noassertion? : Bool
+        @value == NOASSERTION
+      end
+
+      def to_s(io : IO) : Nil
+        io << @value
+      end
+    end
+
     class LicenseRefNode < Node
       getter license_ref : String
       getter document_ref : String?

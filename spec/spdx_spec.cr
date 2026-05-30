@@ -67,4 +67,11 @@ describe Spdx do
       Spdx.license?("MIT").should be_true
     end
   end
+
+  describe ".license_list_version" do
+    it "exposes the embedded SPDX License List version" do
+      Spdx.license_list_version.should eq(Spdx::LICENSE_LIST_VERSION)
+      Spdx.license_list_version.should match(/^\d+\.\d+(\.\d+)?$/)
+    end
+  end
 end

@@ -2,6 +2,12 @@
 # Do not edit manually
 
 module Spdx
+  # Version of the SPDX License List this embedded snapshot was generated
+  # from. Detected from the set of licenses/exceptions present (landmark
+  # IDs: InnoSetup, Sun-PPP, DocBook-Schema present; pixar absent).
+  # Regenerate this file and update this value when refreshing the data.
+  LICENSE_LIST_VERSION = "3.26.0"
+
   # :nodoc:
   LICENSE_DATA = [
     {id: "0BSD", name: "BSD Zero Clause License", osi_approved: true, fsf_libre: false, deprecated: false},

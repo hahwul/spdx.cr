@@ -54,4 +54,21 @@ describe Spdx::Expression::Validator do
     result.valid?.should be_false
     result.errors.size.should eq(2)
   end
+
+  it "accepts NONE and NOASSERTION as valid" do
+    ["NONE", "NOASSERTION"].each do |value|
+      ast = Spdx::Expression::Parser.parse(value)
+      result = Spdx::Expression::Validator.validate(ast)
+      result.valid?.should be_true
+      result.errors.should be_empty
+      result.warnings.should be_empty
+    end
+  end
+
+  it "warns on a redundant '+' applied to an -or-later identifier" do
+    ast = Spdx::Expression::Parser.parse("GPL-3.0-or-later+")
+    result = Spdx::Expression::Validator.validate(ast)
+    result.valid?.should be_true
+    result.warnings.any?(&.includes?("Redundant '+'")).should be_true
+  end
 end

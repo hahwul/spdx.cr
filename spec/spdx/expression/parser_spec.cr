@@ -113,4 +113,40 @@ describe Spdx::Expression::Parser do
     expr = ("(" * nesting) + "MIT" + (")" * nesting)
     Spdx::Expression::Parser.parse(expr).should_not be_nil
   end
+
+  it "parses '+' only when adjacent to the license id" do
+    node = Spdx::Expression::Parser.parse("MIT+")
+    node.as(Spdx::Expression::LicenseNode).or_later?.should be_true
+  end
+
+  it "rejects '+' separated from the license id by whitespace" do
+    expect_raises(Spdx::ParseError, /must immediately follow/) do
+      Spdx::Expression::Parser.parse("MIT +")
+    end
+  end
+
+  it "rejects a standalone '+'" do
+    expect_raises(Spdx::ParseError) do
+      Spdx::Expression::Parser.parse("+")
+    end
+  end
+
+  it "parses NONE as a reserved value" do
+    node = Spdx::Expression::Parser.parse("NONE")
+    node.should be_a(Spdx::Expression::ReservedNode)
+    node.as(Spdx::Expression::ReservedNode).none?.should be_true
+    node.to_s.should eq("NONE")
+  end
+
+  it "parses NOASSERTION as a reserved value" do
+    node = Spdx::Expression::Parser.parse("NOASSERTION")
+    node.should be_a(Spdx::Expression::ReservedNode)
+    node.as(Spdx::Expression::ReservedNode).noassertion?.should be_true
+  end
+
+  it "rejects NONE combined with other licenses" do
+    expect_raises(Spdx::ParseError, /cannot be combined/) do
+      Spdx::Expression::Parser.parse("MIT AND NONE")
+    end
+  end
 end

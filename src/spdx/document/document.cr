@@ -7,7 +7,7 @@ module Spdx
     SPDX_ID_PATTERN = /^SPDXRef-[a-zA-Z0-9.\-]+$/
     URI_PATTERN     = /^https?:\/\/.+/
     CREATOR_PATTERN = /^(Tool|Organization|Person):\s*.+$/
-    ISO8601_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/
+    ISO8601_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/
 
     @[JSON::Field(key: "spdxVersion")]
     property spdx_version : String
@@ -83,6 +83,9 @@ module Spdx
       # Snippet validation
       validate_snippets(errors)
 
+      # SPDXID uniqueness across the document, packages, files, snippets
+      validate_spdx_id_uniqueness(errors)
+
       # Relationship validation
       validate_relationships(errors)
 
@@ -124,8 +127,28 @@ module Spdx
           errors << "#{prefix}.licenseConcluded is required" if pkg.license_concluded.empty?
           errors << "#{prefix}.licenseDeclared is required" if pkg.license_declared.empty?
           errors << "#{prefix}.copyrightText is required" if pkg.copyright_text.empty?
+
+          validate_license_expression("#{prefix}.licenseConcluded", pkg.license_concluded, errors)
+          validate_license_expression("#{prefix}.licenseDeclared", pkg.license_declared, errors)
+          if infos = pkg.license_info_from_files
+            infos.each_with_index do |li, j|
+              validate_license_expression("#{prefix}.licenseInfoFromFiles[#{j}]", li, errors)
+            end
+          end
         end
       end
+    end
+
+    # Validates a single SPDX license-expression field. Empty values are
+    # ignored here (handled by the field-required checks); non-empty values
+    # must parse and reference known licenses/exceptions (or be the reserved
+    # values NONE / NOASSERTION).
+    private def validate_license_expression(field : String, value : String, errors : Array(String))
+      return if value.empty?
+      result = Spdx.validate_expression(value)
+      result.errors.each { |e| errors << "#{field}: #{e}" }
+    rescue ex : ParseError
+      errors << "#{field}: invalid SPDX license expression (#{ex.message})"
     end
 
     private def validate_files(errors : Array(String))
@@ -137,6 +160,13 @@ module Spdx
           errors << "#{prefix}.fileName is required" if f.file_name.empty?
           errors << "#{prefix}.licenseConcluded is required" if f.license_concluded.empty?
           errors << "#{prefix}.copyrightText is required" if f.copyright_text.empty?
+
+          validate_license_expression("#{prefix}.licenseConcluded", f.license_concluded, errors)
+          if infos = f.license_info_in_files
+            infos.each_with_index do |li, j|
+              validate_license_expression("#{prefix}.licenseInfoInFiles[#{j}]", li, errors)
+            end
+          end
         end
       end
     end
@@ -151,23 +181,104 @@ module Spdx
           errors << "#{prefix}.ranges must not be empty" if s.ranges.empty?
           errors << "#{prefix}.licenseConcluded is required" if s.license_concluded.empty?
           errors << "#{prefix}.copyrightText is required" if s.copyright_text.empty?
+
+          validate_license_expression("#{prefix}.licenseConcluded", s.license_concluded, errors)
+          if infos = s.license_info_in_snippets
+            infos.each_with_index do |li, j|
+              validate_license_expression("#{prefix}.licenseInfoInSnippets[#{j}]", li, errors)
+            end
+          end
         end
       end
     end
 
     private def validate_relationships(errors : Array(String))
-      if rels = relationships
-        has_describes = rels.any? { |r| r.relationship_type == RelationshipType::DESCRIBES }
-        errors << "document must have at least one DESCRIBES relationship" unless has_describes
+      defined = defined_spdx_ids
+      external = external_document_ref_ids
 
-        rels.each_with_index do |rel, i|
-          prefix = "relationships[#{i}]"
-          errors << "#{prefix}.spdxElementId is required" if rel.spdx_element_id.empty?
-          errors << "#{prefix}.relatedSpdxElement is required" if rel.related_spdx_element.empty?
-        end
-      else
-        errors << "document must have at least one DESCRIBES relationship"
+      # The document must declare what it describes — via at least one
+      # DESCRIBES relationship OR via the top-level `documentDescribes`
+      # array (SPDX 2.3 permits either).
+      has_describes_rel = relationships.try(&.any? { |r| r.relationship_type == RelationshipType::DESCRIBES })
+      dd = document_describes
+      has_document_describes = !dd.nil? && !dd.empty?
+      unless has_describes_rel || has_document_describes
+        errors << "document must declare what it describes (a DESCRIBES relationship or documentDescribes)"
       end
+
+      # Every documentDescribes entry must reference a defined element.
+      document_describes.try &.each_with_index do |ref, i|
+        unless valid_element_reference?(ref, defined, external)
+          errors << "documentDescribes[#{i}] references undefined element '#{ref}'"
+        end
+      end
+
+      relationships.try &.each_with_index do |rel, i|
+        prefix = "relationships[#{i}]"
+        if rel.spdx_element_id.empty?
+          errors << "#{prefix}.spdxElementId is required"
+        elsif !valid_element_reference?(rel.spdx_element_id, defined, external)
+          errors << "#{prefix}.spdxElementId references undefined element '#{rel.spdx_element_id}'"
+        end
+
+        if rel.related_spdx_element.empty?
+          errors << "#{prefix}.relatedSpdxElement is required"
+        elsif !valid_element_reference?(rel.related_spdx_element, defined, external)
+          errors << "#{prefix}.relatedSpdxElement references undefined element '#{rel.related_spdx_element}'"
+        end
+      end
+    end
+
+    # All SPDXIDs defined in this document (the document itself plus every
+    # package, file, and snippet).
+    private def defined_spdx_ids : Set(String)
+      ids = Set(String).new
+      ids << spdx_id unless spdx_id.empty?
+      packages.try &.each { |p| ids << p.spdx_id unless p.spdx_id.empty? }
+      files.try &.each { |f| ids << f.spdx_id unless f.spdx_id.empty? }
+      snippets.try &.each { |s| ids << s.spdx_id unless s.spdx_id.empty? }
+      ids
+    end
+
+    # The DocumentRef-* identifiers declared in externalDocumentRefs.
+    private def external_document_ref_ids : Set(String)
+      ids = Set(String).new
+      external_document_refs.try &.each do |r|
+        ids << r.external_document_id unless r.external_document_id.empty?
+      end
+      ids
+    end
+
+    # Whether an SPDX element reference is resolvable: the reserved values
+    # NONE/NOASSERTION, a locally-defined SPDXID, or an external reference of
+    # the form `DocumentRef-xxx:SPDXRef-yyy` whose DocumentRef-xxx is declared
+    # in externalDocumentRefs.
+    private def valid_element_reference?(ref : String, defined : Set(String), external : Set(String)) : Bool
+      return true if ref == "NONE" || ref == "NOASSERTION"
+      return true if defined.includes?(ref)
+      if ref.includes?(':')
+        doc_ref = ref.partition(':')[0]
+        return external.includes?(doc_ref)
+      end
+      false
+    end
+
+    private def validate_spdx_id_uniqueness(errors : Array(String))
+      seen = Set(String).new
+      reported = Set(String).new
+      check = ->(id : String, label : String) do
+        return if id.empty?
+        if seen.includes?(id) && !reported.includes?(id)
+          errors << "duplicate SPDXID '#{id}' (#{label})"
+          reported << id
+        end
+        seen << id
+      end
+
+      check.call(spdx_id, "document")
+      packages.try &.each_with_index { |p, i| check.call(p.spdx_id, "packages[#{i}]") }
+      files.try &.each_with_index { |f, i| check.call(f.spdx_id, "files[#{i}]") }
+      snippets.try &.each_with_index { |s, i| check.call(s.spdx_id, "snippets[#{i}]") }
     end
   end
 end
