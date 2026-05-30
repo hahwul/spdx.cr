@@ -21,6 +21,20 @@ module Spdx
 
       def parse : Node
         raise ParseError.new("Empty expression") if current.type.eof?
+
+        # `NONE` / `NOASSERTION` are reserved values that stand alone; they
+        # are not part of the compound-expression grammar and may not be
+        # combined with other licenses.
+        if current.type.license_id? &&
+           (current.value == ReservedNode::NONE || current.value == ReservedNode::NOASSERTION)
+          value = current.value
+          advance
+          unless current.type.eof?
+            raise ParseError.new("'#{value}' cannot be combined with other license expressions at position #{current.position}")
+          end
+          return ReservedNode.new(value)
+        end
+
         node = parse_or
         unless current.type.eof?
           raise ParseError.new("Unexpected token '#{current.value}' at position #{current.position}")
@@ -78,6 +92,12 @@ module Spdx
           node
         when .license_id?
           id = current.value
+          # NONE / NOASSERTION are standalone reserved values handled in
+          # `parse`; reaching here means one appears inside a compound
+          # expression, which the SPDX grammar disallows.
+          if id == ReservedNode::NONE || id == ReservedNode::NOASSERTION
+            raise ParseError.new("'#{id}' cannot be combined with other license expressions at position #{current.position}")
+          end
           advance
           if current.type.plus?
             advance

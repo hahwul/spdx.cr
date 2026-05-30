@@ -33,6 +33,8 @@ module Spdx
 
       private def self.validate_node(node : Node, errors : Array(String), warnings : Array(String))
         case node
+        when ReservedNode
+          # NONE / NOASSERTION are always valid standalone values.
         when LicenseNode
           if LicenseList.license?(node.id)
             lic = LicenseList.find_license(node.id)
@@ -41,6 +43,12 @@ module Spdx
             end
             if lic.id != node.id
               warnings << "Non-canonical casing: '#{node.id}' should be '#{lic.id}'"
+            end
+            # The `+` operator means "this version or later"; applying it to
+            # an identifier that already encodes that (an `-or-later` id) is
+            # redundant and SPDX deprecates the combination.
+            if node.or_later? && node.id.downcase.ends_with?("-or-later")
+              warnings << "Redundant '+': '#{node.id}' already means 'or later'"
             end
           else
             errors << "Unknown license: #{node.id}"

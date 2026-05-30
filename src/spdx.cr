@@ -45,4 +45,9 @@ module Spdx
   def self.exception?(id : String) : Bool
     LicenseList.exception?(id)
   end
+
+  # Version of the embedded SPDX License List snapshot.
+  def self.license_list_version : String
+    LicenseList.version
+  end
 end

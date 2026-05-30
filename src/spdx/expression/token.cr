@@ -49,8 +49,12 @@ module Spdx
             @tokens << Token.new(TokenType::RParen, ")", @pos)
             @pos += 1
           when '+'
-            @tokens << Token.new(TokenType::Plus, "+", @pos)
-            @pos += 1
+            # A '+' is only valid as a suffix immediately adjacent to a
+            # license id (e.g. `MIT+`); that case is consumed inside
+            # `read_word`. Reaching '+' here means it was preceded by
+            # whitespace or stands alone, which the SPDX grammar forbids
+            # (the ABNF concatenates `license-id "+"` with no separator).
+            raise ParseError.new("'+' must immediately follow a license identifier (no whitespace) at position #{@pos}")
           when ':'
             @tokens << Token.new(TokenType::Colon, ":", @pos)
             @pos += 1
@@ -93,6 +97,15 @@ module Spdx
             @tokens << Token.new(TokenType::LicenseRef, word, start)
           else
             @tokens << Token.new(TokenType::LicenseId, word, start)
+          end
+
+          # A trailing '+' is only meaningful when it is directly attached
+          # to the identifier just read (the SPDX `license-id "+"` form).
+          # Emit the Plus token here so non-adjacent '+' (handled in the
+          # main loop) is rejected.
+          if @pos < @input.size && @input[@pos] == '+'
+            @tokens << Token.new(TokenType::Plus, "+", @pos)
+            @pos += 1
           end
         end
       end

@@ -73,6 +73,11 @@ module Spdx
       end
     end
 
+    # The SPDX License List version this embedded data was generated from.
+    def version : String
+      LICENSE_LIST_VERSION
+    end
+
     def osi_approved : Array(License)
       licenses.select(&.osi_approved?)
     end
