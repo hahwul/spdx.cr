@@ -55,6 +55,8 @@ module Spdx
 
     def self.from_string(s : String) : self
       parse(s.gsub("-", "_"))
+    rescue
+      raise FormatError.new("Unknown relationship type: #{s}")
     end
 
     def to_json(json : JSON::Builder)
