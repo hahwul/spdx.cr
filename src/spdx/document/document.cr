@@ -8,6 +8,9 @@ module Spdx
     URI_PATTERN     = /^https?:\/\/.+/
     CREATOR_PATTERN = /^(Tool|Organization|Person):\s*.+$/
     ISO8601_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/
+    # `"LicenseRef-"[idstring]` where idstring is letters, numbers, "." and
+    # "-" (SPDX 2.3 §10.1).
+    LICENSE_REF_PATTERN = /^LicenseRef-[a-zA-Z0-9.\-]+$/
 
     @[JSON::Field(key: "spdxVersion")]
     property spdx_version : String
@@ -70,6 +73,9 @@ module Spdx
       errors << "name is required" if name.empty?
       errors << "documentNamespace is required" if document_namespace.empty?
       errors << "documentNamespace must be a valid URI" if !document_namespace.empty? && !document_namespace.matches?(URI_PATTERN)
+      # SPDX 2.3 §6.5: the namespace URI must not carry a fragment, because
+      # '#' separates the namespace from an element identifier.
+      errors << "documentNamespace must not contain a '#' fragment delimiter" if document_namespace.includes?('#')
 
       # CreationInfo validation
       validate_creation_info(errors)
@@ -88,6 +94,9 @@ module Spdx
 
       # Relationship validation
       validate_relationships(errors)
+
+      # Other Licensing Information Detected validation
+      validate_extracted_licensing_infos(errors)
 
       errors
     end
@@ -189,6 +198,27 @@ module Spdx
             end
           end
         end
+      end
+    end
+
+    # Validates the `hasExtractedLicensingInfos` entries (SPDX 2.3 clause 10):
+    # each licenseId must be a well-formed `LicenseRef-` identifier, must be
+    # unique within the document, and must carry the extracted license text.
+    private def validate_extracted_licensing_infos(errors : Array(String))
+      infos = extracted_licensing_infos
+      return if infos.nil?
+
+      seen = Set(String).new
+      infos.each_with_index do |info, i|
+        prefix = "hasExtractedLicensingInfos[#{i}]"
+        if info.license_id.empty?
+          errors << "#{prefix}.licenseId is required"
+        elsif !info.license_id.matches?(LICENSE_REF_PATTERN)
+          errors << "#{prefix}.licenseId must be of the form 'LicenseRef-[idstring]'"
+        elsif !seen.add?(info.license_id)
+          errors << "#{prefix}.licenseId duplicates '#{info.license_id}'"
+        end
+        errors << "#{prefix}.extractedText is required" if info.extracted_text.empty?
       end
     end
 
