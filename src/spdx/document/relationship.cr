@@ -1,6 +1,9 @@
 require "json"
 
 module Spdx
+  # Relationship types defined by SPDX 2.3 (clause 11.1, Table 68). A few
+  # non-standard values are retained after `AMENDS` for backwards
+  # compatibility with documents this library previously accepted.
   enum RelationshipType
     DESCRIBES
     DESCRIBED_BY
@@ -48,6 +51,10 @@ module Spdx
     VARIANT_DISTRIBUTION_OF
     SECURITY_FIX_FOR
     AFFECTS
+    DEPENDENCY_MANIFEST_OF
+    PATCH_APPLIED
+    METAFILE_OF
+    AMENDS
 
     def to_s : String
       super
