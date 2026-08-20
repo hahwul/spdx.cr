@@ -72,6 +72,45 @@ describe Spdx::Format::TagValue::Parser do
     anns[0].annotator.should eq("Person: Jane Doe (jane@example.org)")
   end
 
+  it "parses an ExternalDocumentRef whose checksum uses the canonical spacing" do
+    # SPDX 2.3 §6.6 writes the trailing checksum as `SHA1: d6a770ba...`.
+    input = <<-SPDX
+      SPDXVersion: SPDX-2.3
+      DataLicense: CC0-1.0
+      SPDXID: SPDXRef-DOCUMENT
+      DocumentName: Example
+      DocumentNamespace: https://example.org/example
+      Creator: Tool: example
+      Created: 2024-01-01T00:00:00Z
+      ExternalDocumentRef: DocumentRef-spdx-tool-1.2 https://spdx.org/spdxdocs/spdx-tools-v1.2 SHA1: d6a770ba38583ed4bb4525bd96e50461655d2759
+      SPDX
+
+    ref = Spdx::Format::TagValue::Parser.parse(input).external_document_refs.not_nil![0]
+    ref.external_document_id.should eq("DocumentRef-spdx-tool-1.2")
+    ref.checksum.algorithm.should eq(Spdx::ChecksumAlgorithm::SHA1)
+    ref.checksum.value.should eq("d6a770ba38583ed4bb4525bd96e50461655d2759")
+  end
+
+  it "raises FormatError on an unknown AnnotationType instead of silently using OTHER" do
+    input = <<-SPDX
+      SPDXVersion: SPDX-2.3
+      DataLicense: CC0-1.0
+      SPDXID: SPDXRef-DOCUMENT
+      DocumentName: Example
+      DocumentNamespace: https://example.org/example
+      Creator: Tool: example
+      Created: 2024-01-01T00:00:00Z
+      Annotator: Person: Jane Doe
+      AnnotationDate: 2024-01-01T00:00:00Z
+      AnnotationComment: c
+      AnnotationType: BOGUS
+      SPDX
+
+    expect_raises(Spdx::FormatError, "Unknown annotation type: BOGUS") do
+      Spdx::Format::TagValue::Parser.parse(input)
+    end
+  end
+
   it "generates Tag-Value from parsed document" do
     doc = Spdx::Format::TagValue::Parser.parse_file("spec/fixtures/example.spdx")
     output = Spdx::Format::TagValue::Generator.generate(doc)
