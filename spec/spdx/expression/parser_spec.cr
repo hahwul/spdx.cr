@@ -131,6 +131,25 @@ describe Spdx::Expression::Parser do
     end
   end
 
+  it "rejects WITH applied to a parenthesized expression" do
+    # The ABNF only allows `simple-expression "WITH" license-exception-id`;
+    # a parenthesized group is a compound-expression.
+    expect_raises(Spdx::ParseError, /may only follow a simple license expression/) do
+      Spdx::Expression::Parser.parse("(MIT OR Apache-2.0) WITH Classpath-exception-2.0")
+    end
+  end
+
+  it "rejects WITH applied to a redundantly parenthesized simple expression" do
+    expect_raises(Spdx::ParseError, /may only follow a simple license expression/) do
+      Spdx::Expression::Parser.parse("(GPL-2.0-only) WITH Classpath-exception-2.0")
+    end
+  end
+
+  it "still allows WITH after a parenthesized group elsewhere in the expression" do
+    node = Spdx::Expression::Parser.parse("(MIT OR Apache-2.0) AND GPL-2.0-only WITH Classpath-exception-2.0")
+    node.as(Spdx::Expression::CompoundNode).right.should be_a(Spdx::Expression::WithExceptionNode)
+  end
+
   it "parses NONE as a reserved value" do
     node = Spdx::Expression::Parser.parse("NONE")
     node.should be_a(Spdx::Expression::ReservedNode)

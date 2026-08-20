@@ -65,6 +65,28 @@ describe Spdx::Expression::Validator do
     end
   end
 
+  it "flags a LicenseRef whose idstring is empty or malformed" do
+    # license-ref = ["DocumentRef-"(idstring)":"]"LicenseRef-"(idstring)
+    ["LicenseRef-", "LicenseRef-bad_ref"].each do |expr|
+      ast = Spdx::Expression::Parser.parse(expr)
+      result = Spdx::Expression::Validator.validate(ast)
+      result.valid?.should be_false
+      result.errors.any?(&.includes?("Malformed LicenseRef")).should be_true
+    end
+  end
+
+  it "flags a malformed DocumentRef" do
+    ast = Spdx::Expression::Parser.parse("DocumentRef-bad_ref:LicenseRef-custom-1")
+    result = Spdx::Expression::Validator.validate(ast)
+    result.valid?.should be_false
+    result.errors.any?(&.includes?("Malformed DocumentRef")).should be_true
+  end
+
+  it "accepts a well-formed DocumentRef:LicenseRef pair" do
+    ast = Spdx::Expression::Parser.parse("DocumentRef-ext1:LicenseRef-custom-1")
+    Spdx::Expression::Validator.validate(ast).valid?.should be_true
+  end
+
   it "warns on a redundant '+' applied to an -or-later identifier" do
     ast = Spdx::Expression::Parser.parse("GPL-3.0-or-later+")
     result = Spdx::Expression::Validator.validate(ast)
