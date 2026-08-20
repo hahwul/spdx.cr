@@ -18,7 +18,10 @@ module Spdx
     end
 
     def self.from_string(s : String) : self
-      case s.upcase
+      # SPDX 2.3 spells these with hyphens; the SPDX 2.2 JSON schema also
+      # allowed the underscored spellings, which tools still emit. Accept
+      # both on input and always write the hyphenated form back out.
+      case s.upcase.gsub('_', '-')
       when "SECURITY"        then SECURITY
       when "PACKAGE-MANAGER" then PACKAGE_MANAGER
       when "PERSISTENT-ID"   then PERSISTENT_ID
