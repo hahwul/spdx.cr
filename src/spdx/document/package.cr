@@ -42,7 +42,10 @@ module Spdx
     end
 
     def to_json(json : JSON::Builder)
-      json.string(to_s)
+      # The SPDX 2.3 JSON schema spells this value `OPERATING_SYSTEM`, while
+      # the tag-value serialisation (SPDX 2.3 §7.24) spells it
+      # `OPERATING-SYSTEM`; `to_s` produces the tag-value form.
+      json.string(operating_system? ? "OPERATING_SYSTEM" : to_s)
     end
 
     def self.new(pull : JSON::PullParser) : self

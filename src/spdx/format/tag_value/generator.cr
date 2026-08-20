@@ -53,7 +53,7 @@ module Spdx
         private def write_external_doc_refs
           if refs = @doc.external_document_refs
             refs.each do |ref|
-              @output << "ExternalDocumentRef: #{ref.external_document_id} #{ref.spdx_document} #{ref.checksum.algorithm}:#{ref.checksum.value}\n"
+              tag("ExternalDocumentRef", "#{ref.external_document_id} #{ref.spdx_document} #{ref.checksum.algorithm}: #{ref.checksum.value}")
             end
             @output << "\n" unless refs.empty?
           end
@@ -78,7 +78,10 @@ module Spdx
                 tag("PackageOriginator", o)
               end
               tag("PackageDownloadLocation", pkg.download_location)
-              if fa = pkg.files_analyzed
+              # `false` is a meaningful value here: an omitted FilesAnalyzed
+              # defaults to `true` (SPDX 2.3 §7.8), so a truthiness check would
+              # silently flip the package's meaning.
+              unless (fa = pkg.files_analyzed).nil?
                 tag("FilesAnalyzed", fa.to_s)
               end
               if vc = pkg.package_verification_code
@@ -107,7 +110,7 @@ module Spdx
               if lc = pkg.license_comments
                 tag_multiline("PackageLicenseComments", lc)
               end
-              tag("PackageCopyrightText", pkg.copyright_text)
+              tag_multiline("PackageCopyrightText", pkg.copyright_text)
               if s = pkg.summary
                 tag_multiline("PackageSummary", s)
               end
@@ -162,7 +165,7 @@ module Spdx
               if li = f.license_info_in_files
                 li.each { |l| tag("LicenseInfoInFile", l) }
               end
-              tag("FileCopyrightText", f.copyright_text)
+              tag_multiline("FileCopyrightText", f.copyright_text)
               if c = f.comment
                 tag_multiline("FileComment", c)
               end
@@ -201,7 +204,7 @@ module Spdx
               if li = s.license_info_in_snippets
                 li.each { |l| tag("LicenseInfoInSnippet", l) }
               end
-              tag("SnippetCopyrightText", s.copyright_text)
+              tag_multiline("SnippetCopyrightText", s.copyright_text)
               if n = s.name
                 tag("SnippetName", n)
               end
@@ -225,7 +228,7 @@ module Spdx
               tag("LicenseID", lic.license_id)
               tag_multiline("ExtractedText", lic.extracted_text)
               if n = lic.name
-                tag("LicenseName", n)
+                tag_multiline("LicenseName", n)
               end
               if refs = lic.see_alsos
                 refs.each { |r| tag("LicenseCrossReference", r) }
@@ -266,14 +269,28 @@ module Spdx
         end
 
         private def tag(name : String, value : String)
+          if value.includes?("\n")
+            raise FormatError.new("#{name} is a single-line tag-value field but its value contains a line break")
+          end
           @output << name << ": " << value << "\n"
         end
 
         private def tag_multiline(name : String, value : String)
           if value.includes?("\n")
+            guard_text(name, value)
             @output << name << ": <text>" << value << "</text>\n"
           else
             @output << name << ": " << value << "\n"
+          end
+        end
+
+        # Tag-value has no escape mechanism inside a `<text>` block, so a value
+        # containing the closing delimiter would terminate the block early and
+        # let the remainder be read back as arbitrary tags. Refuse to emit it
+        # rather than produce a document that says something else.
+        private def guard_text(name : String, value : String)
+          if value.includes?("</text>")
+            raise FormatError.new("#{name} value contains '</text>', which cannot be represented in tag-value format")
           end
         end
       end

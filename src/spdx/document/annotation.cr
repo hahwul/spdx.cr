@@ -5,12 +5,18 @@ module Spdx
     REVIEW
     OTHER
 
+    def self.from_string(s : String) : self
+      parse(s)
+    rescue
+      raise FormatError.new("Unknown annotation type: #{s}")
+    end
+
     def to_json(json : JSON::Builder)
       json.string(to_s)
     end
 
     def self.new(pull : JSON::PullParser) : self
-      parse(pull.read_string)
+      from_string(pull.read_string)
     end
   end
 

@@ -10,6 +10,9 @@ module Spdx
       @tokens : Array(Token)
       @pos : Int32 = 0
       @depth : Int32 = 0
+      # Whether the primary expression just parsed was a parenthesized group,
+      # which the SPDX grammar forbids as the left operand of `WITH`.
+      @last_primary_parenthesised : Bool = false
 
       def self.parse(input : String) : Node
         new(input).parse
@@ -68,6 +71,12 @@ module Spdx
       private def parse_with : Node
         left = parse_primary
         if current.type.with?
+          # The SPDX ABNF only allows `simple-expression "WITH"
+          # license-exception-id`; a parenthesised group is a
+          # compound-expression and may not carry an exception.
+          if @last_primary_parenthesised
+            raise ParseError.new("'WITH' may only follow a simple license expression, not a parenthesized expression, at position #{current.position}")
+          end
           advance
           exception_id = expect_exception_id
           left = WithExceptionNode.new(left, exception_id)
@@ -76,6 +85,7 @@ module Spdx
       end
 
       private def parse_primary : Node
+        @last_primary_parenthesised = false
         case current.type
         when .l_paren?
           advance # consume '('
@@ -89,6 +99,7 @@ module Spdx
             @depth -= 1
           end
           expect(TokenType::RParen, "Expected ')'")
+          @last_primary_parenthesised = true
           node
         when .license_id?
           id = current.value

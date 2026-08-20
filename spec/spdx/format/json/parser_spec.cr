@@ -59,6 +59,18 @@ describe Spdx::Format::Json::Parser do
     end
   end
 
+  it "raises FormatError (not ArgumentError) on an unknown annotationType" do
+    input = %({"spdxVersion":"SPDX-2.3","dataLicense":"CC0-1.0","SPDXID":"SPDXRef-DOCUMENT",) +
+            %("name":"x","documentNamespace":"https://example.org/x",) +
+            %("creationInfo":{"created":"2024-01-01T00:00:00Z","creators":["Tool: t"]},) +
+            %("annotations":[{"annotationDate":"2024-01-01T00:00:00Z","annotationType":"BOGUS",) +
+            %("annotator":"Person: a","comment":"c"}]})
+
+    expect_raises(Spdx::FormatError, "Unknown annotation type: BOGUS") do
+      Spdx::Format::Json::Parser.parse(input)
+    end
+  end
+
   it "round-trips JSON" do
     doc = Spdx::Format::Json::Parser.parse_file("spec/fixtures/example.spdx.json")
     json = Spdx::Format::Json::Generator.generate(doc)

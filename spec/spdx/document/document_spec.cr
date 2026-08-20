@@ -334,6 +334,65 @@ describe Spdx::SpdxDocument do
     doc.validate.none?(&.includes?("license")).should be_true
   end
 
+  it "rejects a documentNamespace containing a '#' fragment delimiter" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3",
+      data_license: "CC0-1.0",
+      spdx_id: "SPDXRef-DOCUMENT",
+      name: "Test",
+      document_namespace: "https://example.org/test#fragment",
+      creation_info: Spdx::CreationInfo.new(
+        created: "2024-01-01T00:00:00Z",
+        creators: ["Tool: test"]
+      )
+    )
+    doc.validate.any?(&.includes?("'#' fragment delimiter")).should be_true
+  end
+
+  it "validates hasExtractedLicensingInfos entries" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3",
+      data_license: "CC0-1.0",
+      spdx_id: "SPDXRef-DOCUMENT",
+      name: "Test",
+      document_namespace: "https://example.org/test",
+      creation_info: Spdx::CreationInfo.new(
+        created: "2024-01-01T00:00:00Z",
+        creators: ["Tool: test"]
+      )
+    )
+    doc.document_describes = ["SPDXRef-DOCUMENT"]
+    doc.extracted_licensing_infos = [
+      Spdx::ExtractedLicensingInfo.new(license_id: "not-a-license-ref", extracted_text: "text"),
+      Spdx::ExtractedLicensingInfo.new(license_id: "LicenseRef-a", extracted_text: ""),
+      Spdx::ExtractedLicensingInfo.new(license_id: "LicenseRef-a", extracted_text: "text"),
+    ]
+
+    errors = doc.validate
+    errors.any?(&.includes?("licenseId must be of the form 'LicenseRef-[idstring]'")).should be_true
+    errors.any?(&.includes?("extractedText is required")).should be_true
+    errors.any?(&.includes?("duplicates 'LicenseRef-a'")).should be_true
+  end
+
+  it "accepts well-formed hasExtractedLicensingInfos entries" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3",
+      data_license: "CC0-1.0",
+      spdx_id: "SPDXRef-DOCUMENT",
+      name: "Test",
+      document_namespace: "https://example.org/test",
+      creation_info: Spdx::CreationInfo.new(
+        created: "2024-01-01T00:00:00Z",
+        creators: ["Tool: test"]
+      )
+    )
+    doc.document_describes = ["SPDXRef-DOCUMENT"]
+    doc.extracted_licensing_infos = [
+      Spdx::ExtractedLicensingInfo.new(license_id: "LicenseRef-custom-1", extracted_text: "text"),
+    ]
+    doc.validate.none?(&.includes?("hasExtractedLicensingInfos")).should be_true
+  end
+
   it "accepts a 'created' timestamp with fractional seconds" do
     doc = Spdx::SpdxDocument.new(
       spdx_version: "SPDX-2.3",

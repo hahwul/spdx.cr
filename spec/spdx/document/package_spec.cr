@@ -34,6 +34,43 @@ describe Spdx::Package do
   end
 end
 
+describe Spdx::PrimaryPackagePurpose do
+  it "serializes OPERATING_SYSTEM with the JSON schema spelling" do
+    # The SPDX 2.3 JSON schema enumerates `OPERATING_SYSTEM`, while the
+    # tag-value format (SPDX 2.3 §7.24) uses `OPERATING-SYSTEM`.
+    pkg = Spdx::Package.new(
+      spdx_id: "SPDXRef-Pkg", name: "P", download_location: "NOASSERTION",
+      license_concluded: "MIT", license_declared: "MIT", copyright_text: "c"
+    )
+    pkg.primary_package_purpose = Spdx::PrimaryPackagePurpose::OPERATING_SYSTEM
+
+    pkg.to_json.should contain(%("primaryPackagePurpose":"OPERATING_SYSTEM"))
+    Spdx::PrimaryPackagePurpose::OPERATING_SYSTEM.to_s.should eq("OPERATING-SYSTEM")
+
+    parsed = Spdx::Package.from_json(pkg.to_json)
+    parsed.primary_package_purpose.should eq(Spdx::PrimaryPackagePurpose::OPERATING_SYSTEM)
+  end
+end
+
+describe Spdx::ExternalRefCategory do
+  it "accepts both the hyphenated and underscored spellings" do
+    Spdx::ExternalRefCategory.from_string("PACKAGE-MANAGER").should eq(Spdx::ExternalRefCategory::PACKAGE_MANAGER)
+    Spdx::ExternalRefCategory.from_string("PACKAGE_MANAGER").should eq(Spdx::ExternalRefCategory::PACKAGE_MANAGER)
+    Spdx::ExternalRefCategory.from_string("PERSISTENT_ID").should eq(Spdx::ExternalRefCategory::PERSISTENT_ID)
+  end
+
+  it "always writes the hyphenated SPDX 2.3 spelling" do
+    Spdx::ExternalRefCategory::PACKAGE_MANAGER.to_s.should eq("PACKAGE-MANAGER")
+    Spdx::ExternalRefCategory::PACKAGE_MANAGER.to_json.should eq(%("PACKAGE-MANAGER"))
+  end
+
+  it "raises FormatError on an unknown category" do
+    expect_raises(Spdx::FormatError, "Unknown external reference category: NOPE") do
+      Spdx::ExternalRefCategory.from_string("NOPE")
+    end
+  end
+end
+
 describe Spdx::Relationship do
   it "serializes to JSON and back" do
     rel = Spdx::Relationship.new(

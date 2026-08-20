@@ -323,11 +323,16 @@ module Spdx
         end
 
         private def parse_external_doc_ref(value : String)
-          parts = value.split(/\s+/)
+          parts = value.split(/\s+/, 3)
           if parts.size >= 3
-            algo_value = parts[2].split(":")
-            if algo_value.size == 2
-              @external_doc_refs << {parts[0], parts[1], algo_value[0], algo_value[1]}
+            # The trailing component is a checksum, whose canonical tag-value
+            # spelling puts a space after the colon (SPDX 2.3 §6.6 writes
+            # `... SHA1: d6a770ba...`). Accept the unspaced form too.
+            algo, _, rest = parts[2].partition(":")
+            algo = algo.strip
+            checksum_value = rest.strip.split(/\s+/, 2)[0]? || ""
+            unless algo.empty? || checksum_value.empty?
+              @external_doc_refs << {parts[0], parts[1], algo, checksum_value}
             end
           end
         end
@@ -422,7 +427,7 @@ module Spdx
             doc.annotations = @annotations.map do |a|
               Annotation.new(
                 annotation_date: a["AnnotationDate"]? || "",
-                annotation_type: a["AnnotationType"]? == "REVIEW" ? AnnotationType::REVIEW : AnnotationType::OTHER,
+                annotation_type: AnnotationType.from_string(a["AnnotationType"]? || "OTHER"),
                 annotator: a["Annotator"]? || "",
                 comment: a["AnnotationComment"]? || "",
                 spdx_element_id: a["SPDXREF"]?
