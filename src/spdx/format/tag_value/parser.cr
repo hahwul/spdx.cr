@@ -523,6 +523,8 @@ module Spdx
 
           # `<code> [(excludes: <files>)]` (SPDX 2.3 §7.9); the official
           # example omits the `excludes:` keyword: `<code>(./package.spdx)`.
+          # ponytail: tag-value has no escaping, so a file name containing ','
+          # is split; it matches the generator's `join(", ")`.
           if vc = p["PackageVerificationCode"]?.as?(String)
             code, paren, rest = vc.partition('(')
             excluded = unless paren.empty?
