@@ -130,16 +130,16 @@ Validation checks:
 - Each creator must start with `Tool:`, `Organization:`, or `Person:`
 
 **Packages:**
-- Required fields: `SPDXID`, `name`, `downloadLocation`, `licenseConcluded`, `licenseDeclared`, `copyrightText`
+- Required fields: `SPDXID`, `name`, `downloadLocation`
 - `SPDXID` must match `SPDXRef-[a-zA-Z0-9.-]+`
-- `packageVerificationCode` required when `filesAnalyzed` is `true` (default)
+- `packageVerificationCode` must be omitted when `filesAnalyzed` is `false`
 
 **Files:**
-- Required fields: `SPDXID`, `fileName`, `licenseConcluded`, `copyrightText`
+- Required fields: `SPDXID`, `fileName`
 - `SPDXID` format validation
 
 **Snippets:**
-- Required fields: `SPDXID`, `snippetFromFile`, `ranges`, `licenseConcluded`, `copyrightText`
+- Required fields: `SPDXID`, `snippetFromFile`, `ranges`
 - `SPDXID` format validation
 
 **Relationships:**

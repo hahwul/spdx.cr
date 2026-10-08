@@ -62,6 +62,32 @@ module Spdx
                    @document_namespace : String, @creation_info : CreationInfo)
     end
 
+    # Moves each document-level annotation whose `spdx_element_id` names a
+    # local package, file or snippet into that element's `annotations`, the
+    # SPDX 2.3 JSON schema's nesting (it has no `spdxElementId` on
+    # annotations). Annotations of the document itself or of external
+    # elements stay at document level.
+    def nest_element_annotations : Nil
+      return unless anns = annotations
+      owners = {} of String => Package | FileInfo | Snippet
+      packages.try &.each { |e| owners[e.spdx_id] = e }
+      files.try &.each { |e| owners[e.spdx_id] = e }
+      snippets.try &.each { |e| owners[e.spdx_id] = e }
+
+      kept = anns.reject do |ann|
+        next false unless (id = ann.spdx_element_id) && (owner = owners[id]?)
+        (owner.annotations ||= [] of Annotation) << ann
+        true
+      end
+      self.annotations = kept.empty? ? nil : kept
+    end
+
+    # Legacy JSON (and tag-value converted by older tools) may carry
+    # element annotations at document level with `spdxElementId`.
+    def after_initialize
+      nest_element_annotations
+    end
+
     def validate : Array(String)
       errors = [] of String
 
@@ -127,15 +153,11 @@ module Spdx
           errors << "#{prefix}.name is required" if pkg.name.empty?
           errors << "#{prefix}.downloadLocation is required" if pkg.download_location.empty?
 
-          # filesAnalyzed defaults to true; if true, packageVerificationCode is mandatory
-          files_analyzed = pkg.files_analyzed.nil? || pkg.files_analyzed == true
-          if files_analyzed && pkg.package_verification_code.nil?
-            errors << "#{prefix}.packageVerificationCode is required when filesAnalyzed is true"
+          # packageVerificationCode is optional, but must be omitted when
+          # filesAnalyzed is false (SPDX 2.3 §7.9, Table 21).
+          if pkg.files_analyzed == false && pkg.package_verification_code
+            errors << "#{prefix}.packageVerificationCode must be omitted when filesAnalyzed is false"
           end
-
-          errors << "#{prefix}.licenseConcluded is required" if pkg.license_concluded.empty?
-          errors << "#{prefix}.licenseDeclared is required" if pkg.license_declared.empty?
-          errors << "#{prefix}.copyrightText is required" if pkg.copyright_text.empty?
 
           validate_license_expression("#{prefix}.licenseConcluded", pkg.license_concluded, errors)
           validate_license_expression("#{prefix}.licenseDeclared", pkg.license_declared, errors)
@@ -148,12 +170,12 @@ module Spdx
       end
     end
 
-    # Validates a single SPDX license-expression field. Empty values are
-    # ignored here (handled by the field-required checks); non-empty values
-    # must parse and reference known licenses/exceptions (or be the reserved
-    # values NONE / NOASSERTION).
-    private def validate_license_expression(field : String, value : String, errors : Array(String))
-      return if value.empty?
+    # Validates a single SPDX license-expression field. Absent values are
+    # allowed (SPDX 2.3 §7.13/§7.15/§8.5/§9.6: cardinality 0..1, an omitted
+    # field implies NOASSERTION); present values must parse and reference
+    # known licenses/exceptions (or be the reserved values NONE / NOASSERTION).
+    private def validate_license_expression(field : String, value : String?, errors : Array(String))
+      return if value.nil?
       result = Spdx.validate_expression(value)
       result.errors.each { |e| errors << "#{field}: #{e}" }
     rescue ex : ParseError
@@ -167,8 +189,6 @@ module Spdx
           errors << "#{prefix}.SPDXID is required" if f.spdx_id.empty?
           errors << "#{prefix}.SPDXID format invalid" if !f.spdx_id.empty? && !f.spdx_id.matches?(SPDX_ID_PATTERN)
           errors << "#{prefix}.fileName is required" if f.file_name.empty?
-          errors << "#{prefix}.licenseConcluded is required" if f.license_concluded.empty?
-          errors << "#{prefix}.copyrightText is required" if f.copyright_text.empty?
 
           validate_license_expression("#{prefix}.licenseConcluded", f.license_concluded, errors)
           if infos = f.license_info_in_files
@@ -188,8 +208,6 @@ module Spdx
           errors << "#{prefix}.SPDXID format invalid" if !s.spdx_id.empty? && !s.spdx_id.matches?(SPDX_ID_PATTERN)
           errors << "#{prefix}.snippetFromFile is required" if s.snippet_from_file.empty?
           errors << "#{prefix}.ranges must not be empty" if s.ranges.empty?
-          errors << "#{prefix}.licenseConcluded is required" if s.license_concluded.empty?
-          errors << "#{prefix}.copyrightText is required" if s.copyright_text.empty?
 
           validate_license_expression("#{prefix}.licenseConcluded", s.license_concluded, errors)
           if infos = s.license_info_in_snippets

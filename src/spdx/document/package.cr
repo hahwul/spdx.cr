@@ -92,20 +92,20 @@ module Spdx
     @[JSON::Field(key: "sourceInfo", emit_null: false)]
     property source_info : String?
 
-    @[JSON::Field(key: "licenseConcluded")]
-    property license_concluded : String
+    @[JSON::Field(key: "licenseConcluded", emit_null: false)]
+    property license_concluded : String?
 
     @[JSON::Field(key: "licenseInfoFromFiles", emit_null: false)]
     property license_info_from_files : Array(String)?
 
-    @[JSON::Field(key: "licenseDeclared")]
-    property license_declared : String
+    @[JSON::Field(key: "licenseDeclared", emit_null: false)]
+    property license_declared : String?
 
     @[JSON::Field(key: "licenseComments", emit_null: false)]
     property license_comments : String?
 
-    @[JSON::Field(key: "copyrightText")]
-    property copyright_text : String
+    @[JSON::Field(key: "copyrightText", emit_null: false)]
+    property copyright_text : String?
 
     @[JSON::Field(key: "summary", emit_null: false)]
     property summary : String?
@@ -134,9 +134,15 @@ module Spdx
     @[JSON::Field(key: "validUntilDate", emit_null: false)]
     property valid_until_date : String?
 
+    @[JSON::Field(key: "hasFiles", emit_null: false)]
+    property has_files : Array(String)?
+
+    @[JSON::Field(key: "annotations", emit_null: false)]
+    property annotations : Array(Annotation)?
+
     def initialize(@spdx_id : String, @name : String, @download_location : String,
-                   @license_concluded : String, @license_declared : String,
-                   @copyright_text : String)
+                   @license_concluded : String? = nil, @license_declared : String? = nil,
+                   @copyright_text : String? = nil)
     end
   end
 

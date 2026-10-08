@@ -239,7 +239,7 @@ describe Spdx::SpdxDocument do
     doc.validate.any?(&.includes?("duplicate SPDXID 'SPDXRef-Dup'")).should be_true
   end
 
-  it "validates package verification code when filesAnalyzed is true" do
+  it "treats packageVerificationCode as optional, but forbids it when filesAnalyzed is false" do
     doc = Spdx::SpdxDocument.new(
       spdx_version: "SPDX-2.3",
       data_license: "CC0-1.0",
@@ -251,17 +251,21 @@ describe Spdx::SpdxDocument do
         creators: ["Tool: test"]
       )
     )
-    doc.packages = [
-      Spdx::Package.new(
-        spdx_id: "SPDXRef-Package",
-        name: "TestPkg",
-        download_location: "https://example.org/pkg",
-        license_concluded: "MIT",
-        license_declared: "MIT",
-        copyright_text: "Copyright 2024"
-      ),
-    ]
-    doc.validate.any?(&.includes?("packageVerificationCode")).should be_true
+    pkg = Spdx::Package.new(
+      spdx_id: "SPDXRef-Package",
+      name: "TestPkg",
+      download_location: "https://example.org/pkg"
+    )
+    doc.packages = [pkg]
+    doc.document_describes = ["SPDXRef-Package"]
+    # SPDX 2.3 §7.9 (Table 21): Required: No, 0..1 when FilesAnalyzed is
+    # true or omitted; and licenseConcluded/licenseDeclared/copyrightText are
+    # 0..1 too (§7.13, §7.15, §7.17).
+    doc.validate.should be_empty
+
+    pkg.files_analyzed = false
+    pkg.package_verification_code = Spdx::PackageVerificationCode.new("d6a770ba38583ed4bb4525bd96e50461655d2758")
+    doc.validate.should eq(["packages[0].packageVerificationCode must be omitted when filesAnalyzed is false"])
   end
 
   it "serializes to JSON" do

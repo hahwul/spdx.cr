@@ -32,9 +32,6 @@ module Spdx
           if comment = @doc.comment
             tag_multiline("DocumentComment", comment)
           end
-          if describes = @doc.document_describes
-            describes.each { |d| tag("DocumentDescribes", d) }
-          end
         end
 
         private def write_creation_info
@@ -166,6 +163,7 @@ module Spdx
                 li.each { |l| tag("LicenseInfoInFile", l) }
               end
               tag_multiline("FileCopyrightText", f.copyright_text)
+              tag_multiline("LicenseComments", f.license_comments)
               if c = f.comment
                 tag_multiline("FileComment", c)
               end
@@ -242,30 +240,47 @@ module Spdx
         end
 
         private def write_relationships
-          if rels = @doc.relationships
-            rels.each do |rel|
-              tag("Relationship", "#{rel.spdx_element_id} #{rel.relationship_type} #{rel.related_spdx_element}")
-              if c = rel.comment
-                tag_multiline("RelationshipComment", c)
-              end
-            end
-            @output << "\n" unless rels.empty?
+          rels = @doc.relationships || [] of Relationship
+          # Tag-value has no `documentDescribes`; SPDX 2.3 expresses it as
+          # `Relationship: SPDXRef-DOCUMENT DESCRIBES <id>` (§11).
+          describes = (@doc.document_describes || [] of String).reject do |id|
+            rels.any? { |r| r.relationship_type.describes? && r.spdx_element_id == @doc.spdx_id && r.related_spdx_element == id }
           end
+          describes.each { |id| tag("Relationship", "#{@doc.spdx_id} DESCRIBES #{id}") }
+          rels.each do |rel|
+            tag("Relationship", "#{rel.spdx_element_id} #{rel.relationship_type} #{rel.related_spdx_element}")
+            if c = rel.comment
+              tag_multiline("RelationshipComment", c)
+            end
+          end
+          @output << "\n" unless rels.empty? && describes.empty?
         end
 
         private def write_annotations
-          if anns = @doc.annotations
-            anns.each do |ann|
-              tag("Annotator", ann.annotator)
-              tag("AnnotationDate", ann.annotation_date)
-              tag_multiline("AnnotationComment", ann.comment)
-              tag("AnnotationType", ann.annotation_type.to_s)
-              if id = ann.spdx_element_id
-                tag("SPDXREF", id)
-              end
-              @output << "\n"
-            end
+          write_annotations(@doc.annotations, @doc.spdx_id)
+          @doc.packages.try &.each { |e| write_annotations(e.annotations, e.spdx_id) }
+          @doc.files.try &.each { |e| write_annotations(e.annotations, e.spdx_id) }
+          @doc.snippets.try &.each { |e| write_annotations(e.annotations, e.spdx_id) }
+        end
+
+        # SPDXREF is mandatory per annotation (SPDX 2.3 §12.4); JSON carries it
+        # implicitly through nesting, so default to the owning element's id.
+        private def write_annotations(anns : Array(Annotation)?, owner_id : String)
+          anns.try &.each do |ann|
+            tag("Annotator", ann.annotator)
+            tag("AnnotationDate", ann.annotation_date)
+            tag_multiline("AnnotationComment", ann.comment)
+            tag("AnnotationType", ann.annotation_type.to_s)
+            tag("SPDXREF", ann.spdx_element_id || owner_id)
+            @output << "\n"
           end
+        end
+
+        # Absent optional fields (e.g. licenseConcluded, SPDX 2.3 §7.13) are omitted.
+        private def tag(name : String, value : Nil)
+        end
+
+        private def tag_multiline(name : String, value : Nil)
         end
 
         private def tag(name : String, value : String)

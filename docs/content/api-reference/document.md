@@ -45,10 +45,11 @@ Validation rules:
 | `creationInfo.creators` | Must not be empty; each must start with `Tool:`, `Organization:`, or `Person:` |
 | SPDXID format | All SPDXIDs must match `SPDXRef-[a-zA-Z0-9.-]+` |
 | DESCRIBES relationship | At least one DESCRIBES relationship is required |
-| Package fields | `SPDXID`, `name`, `downloadLocation`, `licenseConcluded`, `licenseDeclared`, `copyrightText` required |
-| Package verification code | Required when `filesAnalyzed` is `true` (default) |
-| File fields | `SPDXID`, `fileName`, `licenseConcluded`, `copyrightText` required |
-| Snippet fields | `SPDXID`, `snippetFromFile`, `ranges`, `licenseConcluded`, `copyrightText` required |
+| Package fields | `SPDXID`, `name`, `downloadLocation` required |
+| Package verification code | Optional; must be omitted when `filesAnalyzed` is `false` |
+| File fields | `SPDXID`, `fileName` required |
+| Snippet fields | `SPDXID`, `snippetFromFile`, `ranges` required |
+| License fields | `licenseConcluded`, `licenseDeclared`, etc. are optional, but must be valid license expressions when present |
 | Relationship fields | `spdxElementId`, `relatedSpdxElement` required |
 
 ### `#valid? : Bool`
@@ -71,15 +72,15 @@ Returns `true` if the document passes validation.
 | `spdx_id` | `String` | `SPDXID` | Yes |
 | `name` | `String` | `name` | Yes |
 | `download_location` | `String` | `downloadLocation` | Yes |
-| `license_concluded` | `String` | `licenseConcluded` | Yes |
-| `license_declared` | `String` | `licenseDeclared` | Yes |
-| `copyright_text` | `String` | `copyrightText` | Yes |
+| `license_concluded` | `String?` | `licenseConcluded` | No |
+| `license_declared` | `String?` | `licenseDeclared` | No |
+| `copyright_text` | `String?` | `copyrightText` | No |
 | `version_info` | `String?` | `versionInfo` | No |
 | `package_file_name` | `String?` | `packageFileName` | No |
 | `supplier` | `String?` | `supplier` | No |
 | `originator` | `String?` | `originator` | No |
 | `files_analyzed` | `Bool?` | `filesAnalyzed` | No (default: `true`) |
-| `package_verification_code` | `PackageVerificationCode?` | `packageVerificationCode` | Conditional |
+| `package_verification_code` | `PackageVerificationCode?` | `packageVerificationCode` | No (omit if `filesAnalyzed` is `false`) |
 | `checksums` | `Array(Checksum)?` | `checksums` | No |
 | `homepage` | `String?` | `homepage` | No |
 | `source_info` | `String?` | `sourceInfo` | No |
@@ -94,6 +95,8 @@ Returns `true` if the document passes validation.
 | `release_date` | `String?` | `releaseDate` | No |
 | `built_date` | `String?` | `builtDate` | No |
 | `valid_until_date` | `String?` | `validUntilDate` | No |
+| `has_files` | `Array(String)?` | `hasFiles` | No |
+| `annotations` | `Array(Annotation)?` | `annotations` | No |
 
 ## Spdx::PrimaryPackagePurpose
 
@@ -116,13 +119,15 @@ Note: `OPERATING_SYSTEM` serializes as `"OPERATING-SYSTEM"` in JSON and Tag-Valu
 | `file_name` | `String` | `fileName` |
 | `file_types` | `Array(FileType)?` | `fileTypes` |
 | `checksums` | `Array(Checksum)?` | `checksums` |
-| `license_concluded` | `String` | `licenseConcluded` |
+| `license_concluded` | `String?` | `licenseConcluded` |
 | `license_info_in_files` | `Array(String)?` | `licenseInfoInFiles` |
-| `copyright_text` | `String` | `copyrightText` |
+| `license_comments` | `String?` | `licenseComments` |
+| `copyright_text` | `String?` | `copyrightText` |
 | `comment` | `String?` | `comment` |
 | `notice_text` | `String?` | `noticeText` |
 | `file_contributors` | `Array(String)?` | `fileContributors` |
 | `attribution_texts` | `Array(String)?` | `attributionTexts` |
+| `annotations` | `Array(Annotation)?` | `annotations` |
 
 ## Spdx::FileType
 
@@ -142,13 +147,14 @@ ft.to_s  # => "SOURCE"
 | `spdx_id` | `String` | `SPDXID` |
 | `snippet_from_file` | `String` | `snippetFromFile` |
 | `ranges` | `Array(SnippetRange)` | `ranges` |
-| `license_concluded` | `String` | `licenseConcluded` |
-| `copyright_text` | `String` | `copyrightText` |
+| `license_concluded` | `String?` | `licenseConcluded` |
+| `copyright_text` | `String?` | `copyrightText` |
 | `license_info_in_snippets` | `Array(String)?` | `licenseInfoInSnippets` |
 | `name` | `String?` | `name` |
 | `comment` | `String?` | `comment` |
 | `license_comments` | `String?` | `licenseComments` |
 | `attribution_texts` | `Array(String)?` | `attributionTexts` |
+| `annotations` | `Array(Annotation)?` | `annotations` |
 
 ## Spdx::Relationship
 
@@ -184,7 +190,9 @@ Enum: `SHA1`, `SHA224`, `SHA256`, `SHA384`, `SHA512`, `SHA3_256`, `SHA3_384`, `S
 | `annotation_type` | `AnnotationType` | `annotationType` |
 | `annotator` | `String` | `annotator` |
 | `comment` | `String` | `comment` |
-| `spdx_element_id` | `String?` | `spdxElementId` |
+| `spdx_element_id` | `String?` | — (tag-value `SPDXREF`; read from legacy JSON, never written) |
+
+Element annotations are nested in the annotated package/file/snippet's `annotations`, as in the SPDX 2.3 JSON schema.
 
 ## Spdx::ExternalRef
 
