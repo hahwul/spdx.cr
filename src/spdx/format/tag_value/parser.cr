@@ -83,7 +83,7 @@ module Spdx
               text_start = value[6..]
               if text_start.ends_with?("</text>")
                 @in_multiline = false
-                set_field(tag, text_start[...-7])
+                handle_tag(tag, text_start[...-7])
               else
                 @multiline_value << text_start
               end
@@ -100,7 +100,7 @@ module Spdx
             @multiline_value << "\n" unless @multiline_value.empty?
             @multiline_value << stripped unless stripped.empty?
             @in_multiline = false
-            set_field(@multiline_tag, @multiline_value.to_s)
+            handle_tag(@multiline_tag, @multiline_value.to_s)
           else
             @multiline_value << "\n" unless @multiline_value.empty?
             @multiline_value << line
@@ -220,6 +220,11 @@ module Spdx
             append_field("FileContributor", value)
           when "ExternalRef"
             append_field("ExternalRef", value)
+          when "ExternalRefComment"
+            # Belongs to the ExternalRef just above it (SPDX 2.3 §7.22).
+            if (pkg = @current_pkg) && (refs = pkg["ExternalRef"]?.as?(Array(String)))
+              pkg["ExternalRefComment#{refs.size - 1}"] = value
+            end
           when "PackageLicenseInfoFromFiles"
             append_field("PackageLicenseInfoFromFiles", value)
           when "LicenseInfoInFile"
@@ -433,6 +438,7 @@ module Spdx
                 spdx_element_id: a["SPDXREF"]?
               )
             end
+            doc.nest_element_annotations
           end
 
           unless @extracted_licenses.empty?
@@ -467,9 +473,9 @@ module Spdx
             spdx_id: str_field(p, "SPDXID"),
             name: str_field(p, "PackageName"),
             download_location: str_field(p, "PackageDownloadLocation"),
-            license_concluded: str_field(p, "PackageLicenseConcluded"),
-            license_declared: str_field(p, "PackageLicenseDeclared"),
-            copyright_text: str_field(p, "PackageCopyrightText")
+            license_concluded: p["PackageLicenseConcluded"]?.as?(String),
+            license_declared: p["PackageLicenseDeclared"]?.as?(String),
+            copyright_text: p["PackageCopyrightText"]?.as?(String)
           )
           pkg.version_info = p["PackageVersion"]?.as?(String)
           pkg.package_file_name = p["PackageFileName"]?.as?(String)
@@ -481,6 +487,9 @@ module Spdx
           pkg.summary = p["PackageSummary"]?.as?(String)
           pkg.description = p["PackageDescription"]?.as?(String)
           pkg.comment = p["PackageComment"]?.as?(String)
+          pkg.release_date = p["ReleaseDate"]?.as?(String)
+          pkg.built_date = p["BuiltDate"]?.as?(String)
+          pkg.valid_until_date = p["ValidUntilDate"]?.as?(String)
 
           if fa = p["FilesAnalyzed"]?.as?(String)
             pkg.files_analyzed = fa.downcase == "true"
@@ -512,12 +521,14 @@ module Spdx
             pkg.primary_package_purpose = PrimaryPackagePurpose.from_string(pp)
           end
 
+          # `<code> [(excludes: <files>)]` (SPDX 2.3 §7.9); the official
+          # example omits the `excludes:` keyword: `<code>(./package.spdx)`.
           if vc = p["PackageVerificationCode"]?.as?(String)
-            parts = vc.split(/\s*\(excludes:\s*/, 2)
-            excluded = if parts.size > 1
-                         [parts[1].rstrip(')')]
-                       end
-            pkg.package_verification_code = PackageVerificationCode.new(parts[0].strip, excluded)
+            code, paren, rest = vc.partition('(')
+            excluded = unless paren.empty?
+              rest.rstrip.rchop(')').sub(/\A\s*excludes:/i, "").split(',').map(&.strip).reject(&.empty?)
+            end
+            pkg.package_verification_code = PackageVerificationCode.new(code.strip, excluded)
           end
 
           pkg
@@ -527,8 +538,8 @@ module Spdx
           fi = FileInfo.new(
             spdx_id: str_field(f, "SPDXID"),
             file_name: str_field(f, "FileName"),
-            license_concluded: str_field(f, "LicenseConcluded"),
-            copyright_text: str_field(f, "FileCopyrightText")
+            license_concluded: f["LicenseConcluded"]?.as?(String),
+            copyright_text: f["FileCopyrightText"]?.as?(String)
           )
 
           if ft = f["FileType"]?
@@ -549,6 +560,7 @@ module Spdx
           end
 
           fi.comment = f["FileComment"]?.as?(String)
+          fi.license_comments = f["LicenseComments"]?.as?(String)
           fi.notice_text = f["FileNotice"]?.as?(String)
 
           if fc = f["FileContributor"]?
@@ -574,6 +586,9 @@ module Spdx
 
         private def build_snippet(s : Hash(String, String | Array(String))) : Snippet
           ranges = [] of SnippetRange
+          # In tag-value the ranges are implicitly within SnippetFromFileSPDXID;
+          # the JSON schema requires each pointer to name it as `reference`.
+          from_file = s["SnippetFromFileSPDXID"]?.as?(String)
 
           if br = s["SnippetByteRange"]?.as?(String)
             parts = br.split(":")
@@ -582,8 +597,8 @@ module Spdx
               end_val = parts[1].to_i32?
               if start_val && end_val
                 ranges << SnippetRange.new(
-                  start_pointer: RangePointer.new(offset: start_val),
-                  end_pointer: RangePointer.new(offset: end_val)
+                  start_pointer: RangePointer.new(reference: from_file, offset: start_val),
+                  end_pointer: RangePointer.new(reference: from_file, offset: end_val)
                 )
               end
             end
@@ -596,8 +611,8 @@ module Spdx
               end_val = parts[1].to_i32?
               if start_val && end_val
                 ranges << SnippetRange.new(
-                  start_pointer: RangePointer.new(line_number: start_val),
-                  end_pointer: RangePointer.new(line_number: end_val)
+                  start_pointer: RangePointer.new(reference: from_file, line_number: start_val),
+                  end_pointer: RangePointer.new(reference: from_file, line_number: end_val)
                 )
               end
             end
@@ -605,10 +620,10 @@ module Spdx
 
           snippet = Snippet.new(
             spdx_id: str_field(s, "SPDXID"),
-            snippet_from_file: str_field(s, "SnippetFromFileSPDXID"),
+            snippet_from_file: from_file || "",
             ranges: ranges,
-            license_concluded: str_field(s, "SnippetLicenseConcluded"),
-            copyright_text: str_field(s, "SnippetCopyrightText")
+            license_concluded: s["SnippetLicenseConcluded"]?.as?(String),
+            copyright_text: s["SnippetCopyrightText"]?.as?(String)
           )
 
           snippet.name = s["SnippetName"]?.as?(String)
@@ -673,13 +688,14 @@ module Spdx
                      else                    return
                      end
 
-            values.each do |v|
+            values.each_with_index do |v, i|
               parts = v.split(/\s+/, 3)
               if parts.size >= 3
                 refs << ExternalRef.new(
                   reference_category: ExternalRefCategory.from_string(parts[0]),
                   reference_type: parts[1],
-                  reference_locator: parts[2]
+                  reference_locator: parts[2],
+                  comment: p["ExternalRefComment#{i}"]?.as?(String)
                 )
               end
             end

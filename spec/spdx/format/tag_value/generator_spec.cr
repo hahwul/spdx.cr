@@ -121,4 +121,27 @@ describe Spdx::Format::TagValue::Generator do
       Spdx::Format::TagValue::Generator.generate(doc)
     end
   end
+
+  it "writes documentDescribes as DESCRIBES relationships (tag-value has no such tag)" do
+    doc = minimal_document
+    doc.packages = [package_with]
+    doc.document_describes = ["SPDXRef-Package"]
+
+    output = Spdx::Format::TagValue::Generator.generate(doc)
+    output.should_not contain("DocumentDescribes")
+    output.scan("Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package").size.should eq(1)
+    Spdx::Format::TagValue::Parser.parse(output).validate.should be_empty
+
+    # no duplicate when the relationship is already present
+    doc.relationships = [Spdx::Relationship.new("SPDXRef-DOCUMENT", Spdx::RelationshipType::DESCRIBES, "SPDXRef-Package")]
+    Spdx::Format::TagValue::Generator.generate(doc).scan("DESCRIBES").size.should eq(1)
+  end
+
+  it "omits absent licenseConcluded, licenseDeclared and copyrightText" do
+    doc = minimal_document
+    doc.packages = [Spdx::Package.new(spdx_id: "SPDXRef-Package", name: "p", download_location: "NOASSERTION")]
+    output = Spdx::Format::TagValue::Generator.generate(doc)
+    output.should_not contain("PackageLicenseConcluded")
+    output.should_not contain("PackageCopyrightText")
+  end
 end

@@ -48,14 +48,17 @@ module Spdx
     @[JSON::Field(key: "checksums", emit_null: false)]
     property checksums : Array(Checksum)?
 
-    @[JSON::Field(key: "licenseConcluded")]
-    property license_concluded : String
+    @[JSON::Field(key: "licenseConcluded", emit_null: false)]
+    property license_concluded : String?
 
     @[JSON::Field(key: "licenseInfoInFiles", emit_null: false)]
     property license_info_in_files : Array(String)?
 
-    @[JSON::Field(key: "copyrightText")]
-    property copyright_text : String
+    @[JSON::Field(key: "licenseComments", emit_null: false)]
+    property license_comments : String?
+
+    @[JSON::Field(key: "copyrightText", emit_null: false)]
+    property copyright_text : String?
 
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
@@ -69,8 +72,11 @@ module Spdx
     @[JSON::Field(key: "attributionTexts", emit_null: false)]
     property attribution_texts : Array(String)?
 
+    @[JSON::Field(key: "annotations", emit_null: false)]
+    property annotations : Array(Annotation)?
+
     def initialize(@spdx_id : String, @file_name : String,
-                   @license_concluded : String, @copyright_text : String)
+                   @license_concluded : String? = nil, @copyright_text : String? = nil)
     end
   end
 end

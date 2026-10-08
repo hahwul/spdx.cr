@@ -35,7 +35,10 @@ module Spdx
     @[JSON::Field(key: "comment")]
     property comment : String
 
-    @[JSON::Field(key: "spdxElementId", emit_null: false)]
+    # Tag-value `SPDXREF` (SPDX 2.3 §12.4). The 2.3 JSON schema has no such
+    # property — an annotation is nested in the `annotations` array of the
+    # element it annotates — so it is read leniently but never written.
+    @[JSON::Field(key: "spdxElementId", ignore_serialize: true)]
     property spdx_element_id : String?
 
     def initialize(@annotation_date : String, @annotation_type : AnnotationType,

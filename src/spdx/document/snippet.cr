@@ -13,11 +13,11 @@ module Spdx
     @[JSON::Field(key: "ranges")]
     property ranges : Array(SnippetRange)
 
-    @[JSON::Field(key: "licenseConcluded")]
-    property license_concluded : String
+    @[JSON::Field(key: "licenseConcluded", emit_null: false)]
+    property license_concluded : String?
 
-    @[JSON::Field(key: "copyrightText")]
-    property copyright_text : String
+    @[JSON::Field(key: "copyrightText", emit_null: false)]
+    property copyright_text : String?
 
     @[JSON::Field(key: "licenseInfoInSnippets", emit_null: false)]
     property license_info_in_snippets : Array(String)?
@@ -34,9 +34,12 @@ module Spdx
     @[JSON::Field(key: "attributionTexts", emit_null: false)]
     property attribution_texts : Array(String)?
 
+    @[JSON::Field(key: "annotations", emit_null: false)]
+    property annotations : Array(Annotation)?
+
     def initialize(@spdx_id : String, @snippet_from_file : String,
-                   @ranges : Array(SnippetRange), @license_concluded : String,
-                   @copyright_text : String)
+                   @ranges : Array(SnippetRange), @license_concluded : String? = nil,
+                   @copyright_text : String? = nil)
     end
   end
 
