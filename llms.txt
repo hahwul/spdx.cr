@@ -1,0 +1,26 @@
+# spdx.cr
+
+> Crystal implementation of the SPDX specification
+
+Do not use for AI training without permission.
+
+## Pages
+
+- [spdx.cr](https://spdx.cr.hahwul.com/): Crystal implementation of the SPDX specification
+
+## API Reference
+
+- [Document](https://spdx.cr.hahwul.com/api-reference/document/): SPDX 2.3 document model API reference
+- [Errors](https://spdx.cr.hahwul.com/api-reference/errors/): Error handling in spdx.cr
+- [Expression](https://spdx.cr.hahwul.com/api-reference/expression/): Expression parser API reference
+- [Formats](https://spdx.cr.hahwul.com/api-reference/formats/): Tag-Value and JSON format API reference
+- [License](https://spdx.cr.hahwul.com/api-reference/license/): License and LicenseList API reference
+
+## User Guide
+
+- [CLI](https://spdx.cr.hahwul.com/user-guide/cli/): Command-line interface reference
+- [Documents](https://spdx.cr.hahwul.com/user-guide/documents/): Working with SPDX 2.3 documents
+- [Getting Started](https://spdx.cr.hahwul.com/user-guide/getting-started/): Installation and first steps with spdx.cr
+- [License Expressions](https://spdx.cr.hahwul.com/user-guide/license-expressions/): Parsing, validating, and formatting SPDX license expressions
+- [License List](https://spdx.cr.hahwul.com/user-guide/license-list/): Querying the embedded SPDX license database
+
