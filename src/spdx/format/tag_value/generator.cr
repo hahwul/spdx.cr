@@ -7,7 +7,7 @@ module Spdx
         end
 
         @files_by_package : Hash(Int32?, Array(FileInfo))
-        @implied_contains = [] of {String, String}
+        @implied_contains = [] of {String, RelationshipType, String}
 
         def initialize(@doc : SpdxDocument)
           @output = String::Builder.new
@@ -25,7 +25,7 @@ module Spdx
           defined = files.map(&.spdx_id).to_set
           @doc.packages.try &.each_with_index do |pkg, i|
             pkg.has_files.try &.uniq.each do |id|
-              @implied_contains << {pkg.spdx_id, id} unless defined.includes?(id) && owner[id] == i
+              @implied_contains << {pkg.spdx_id, RelationshipType::CONTAINS, id} unless defined.includes?(id) && owner[id] == i
             end
           end
         end
@@ -266,10 +266,9 @@ module Spdx
           # `Relationship: SPDXRef-DOCUMENT DESCRIBES <id>` (§11). Likewise
           # for `hasFiles` entries that file placement cannot express.
           implied = (@doc.document_describes || [] of String).map { |id| {@doc.spdx_id, RelationshipType::DESCRIBES, id} }
-          implied.concat(@implied_contains.map { |pkg, id| {pkg, RelationshipType::CONTAINS, id} })
-          implied.reject! do |from, type, to|
-            rels.any? { |r| r.relationship_type == type && r.spdx_element_id == from && r.related_spdx_element == to }
-          end
+          implied.concat(@implied_contains)
+          stated = rels.map { |r| {r.spdx_element_id, r.relationship_type, r.related_spdx_element} }.to_set
+          implied.reject! { |rel| stated.includes?(rel) }
           implied.each { |from, type, to| tag("Relationship", "#{from} #{type} #{to}") }
           rels.each do |rel|
             tag("Relationship", "#{rel.spdx_element_id} #{rel.relationship_type} #{rel.related_spdx_element}")

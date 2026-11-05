@@ -271,6 +271,11 @@ describe Spdx::SpdxDocument do
     pkg.package_verification_code = nil
     pkg.license_info_from_files = ["MIT"]
     doc.validate.should eq(["packages[0].licenseInfoFromFiles must be omitted when filesAnalyzed is false"])
+
+    # §7.8: if false, the package shall not contain any files.
+    pkg.license_info_from_files = nil
+    pkg.has_files = ["SPDXRef-File"]
+    doc.validate.should contain("packages[0].hasFiles must be omitted when filesAnalyzed is false")
   end
 
   it "requires a SHA1 checksum on every file" do

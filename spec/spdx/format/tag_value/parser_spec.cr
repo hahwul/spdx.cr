@@ -229,16 +229,18 @@ describe Spdx::Format::TagValue::Parser do
 
     it "splits a comma-separated LicenseCrossReference into URLs" do
       # As in SPDXTagExample-v2.3.spdx, whose JSON twin has two seeAlsos.
-      input = header + "LicenseID: LicenseRef-2
-ExtractedText: x
-" \
-                       "LicenseCrossReference: http://people.apache.org/~andyc/neko/LICENSE, http://justasample.url.com
-" \
-                       "LicenseCrossReference: http://example.org/a,b
-"
+      input = header + <<-SPDX
+        LicenseID: LicenseRef-2
+        ExtractedText: x
+        LicenseCrossReference: http://people.apache.org/~andyc/neko/LICENSE, http://justasample.url.com
+        LicenseCrossReference: http://example.org/a,b
+        LicenseCrossReference: <text>http://example.org/c,
+        </text>
+        SPDX
       doc = Spdx::Format::TagValue::Parser.parse(input)
       doc.extracted_licensing_infos.not_nil![0].see_alsos.should eq(
-        ["http://people.apache.org/~andyc/neko/LICENSE", "http://justasample.url.com", "http://example.org/a,b"])
+        ["http://people.apache.org/~andyc/neko/LICENSE", "http://justasample.url.com",
+         "http://example.org/a,b", "http://example.org/c"])
     end
 
     it "parses file LicenseComments" do

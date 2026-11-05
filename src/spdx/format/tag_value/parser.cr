@@ -462,7 +462,7 @@ module Spdx
               see_alsos = case v = e["LicenseCrossReference"]?
                           when Array(String) then v
                           when String        then [v]
-                          end.try &.flat_map(&.split(/,\s+/))
+                          end.try &.flat_map(&.split(/,\s+/, remove_empty: true))
 
               ExtractedLicensingInfo.new(
                 license_id: str_field(e, "LicenseID"),

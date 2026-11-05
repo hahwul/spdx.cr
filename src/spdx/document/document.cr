@@ -158,9 +158,11 @@ module Spdx
           if pkg.files_analyzed == false && pkg.package_verification_code
             errors << "#{prefix}.packageVerificationCode must be omitted when filesAnalyzed is false"
           end
-          # Likewise licenseInfoFromFiles (SPDX 2.3 §7.14, Table 26).
-          if pkg.files_analyzed == false && pkg.license_info_from_files
-            errors << "#{prefix}.licenseInfoFromFiles must be omitted when filesAnalyzed is false"
+          # Likewise licenseInfoFromFiles (§7.14, Table 26), and such a package
+          # "shall not contain any files" (§7.8).
+          if pkg.files_analyzed == false
+            errors << "#{prefix}.licenseInfoFromFiles must be omitted when filesAnalyzed is false" if pkg.license_info_from_files
+            errors << "#{prefix}.hasFiles must be omitted when filesAnalyzed is false" if pkg.has_files
           end
 
           validate_license_expression("#{prefix}.licenseConcluded", pkg.license_concluded, errors)
