@@ -137,6 +137,28 @@ describe Spdx::Format::TagValue::Generator do
     Spdx::Format::TagValue::Generator.generate(doc).scan("DESCRIBES").size.should eq(1)
   end
 
+  it "writes each package's hasFiles right after it and other files before all packages" do
+    doc = minimal_document
+    sha1 = [Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA1, "da39a3ee5e6b4b0d3255bfef95601890afd80709")]
+    doc.files = %w[SPDXRef-A SPDXRef-Loose SPDXRef-B].map do |id|
+      Spdx::FileInfo.new(spdx_id: id, file_name: "./#{id}").tap(&.checksums=(sha1))
+    end
+    p1 = package_with.tap(&.has_files=(["SPDXRef-A", "SPDXRef-B"]))
+    p2 = Spdx::Package.new(spdx_id: "SPDXRef-P2", name: "p2", download_location: "NOASSERTION")
+    p2.has_files = ["SPDXRef-A", "DocumentRef-x:SPDXRef-Ext"]
+    doc.packages = [p1, p2]
+    doc.document_describes = ["SPDXRef-Package"]
+
+    output = Spdx::Format::TagValue::Generator.generate(doc)
+    order = output.scan(/^(?:PackageName|FileName): ([^\n]+)/m).map(&.[1])
+    order.should eq(["./SPDXRef-Loose", "Example Package", "./SPDXRef-A", "./SPDXRef-B", "p2"])
+    output.should contain("Relationship: SPDXRef-P2 CONTAINS SPDXRef-A")
+    output.should contain("Relationship: SPDXRef-P2 CONTAINS DocumentRef-x:SPDXRef-Ext")
+
+    reparsed = Spdx::Format::TagValue::Parser.parse(output)
+    reparsed.packages.not_nil!.map(&.has_files).should eq([["SPDXRef-A", "SPDXRef-B"], nil])
+  end
+
   it "omits absent licenseConcluded, licenseDeclared and copyrightText" do
     doc = minimal_document
     doc.packages = [Spdx::Package.new(spdx_id: "SPDXRef-Package", name: "p", download_location: "NOASSERTION")]

@@ -125,6 +125,15 @@ describe Spdx::Expression::Parser do
     end
   end
 
+  it "rejects an operator glued to '+' (D.1 requires white space around operators)" do
+    {"MIT+AND BSD-3-Clause", "MIT+OR BSD-3-Clause", "GPL-2.0+WITH Classpath-exception-2.0"}.each do |expr|
+      expect_raises(Spdx::ParseError, /must be followed by white space/) do
+        Spdx::Expression::Parser.parse(expr)
+      end
+    end
+    Spdx::Expression::Parser.parse("(MIT+)").to_s.should eq("MIT+")
+  end
+
   it "rejects a standalone '+'" do
     expect_raises(Spdx::ParseError) do
       Spdx::Expression::Parser.parse("+")

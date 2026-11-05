@@ -198,6 +198,51 @@ describe Spdx::Format::TagValue::Parser do
       pkg.valid_until_date.should eq("2014-01-29T18:30:22Z")
     end
 
+    it "puts files that follow a package into its hasFiles (§5.2.3)" do
+      input = header + <<-SPDX
+        FileName: ./loose.c
+        SPDXID: SPDXRef-Loose
+
+        PackageName: p
+        SPDXID: SPDXRef-P
+
+        Annotator: Person: Package Commenter
+        AnnotationDate: 2011-01-29T18:30:22Z
+        AnnotationComment: annotations and relationships may sit between
+        AnnotationType: OTHER
+        SPDXREF: SPDXRef-P
+        Relationship: SPDXRef-P DYNAMIC_LINK SPDXRef-Q
+
+        FileName: ./a.c
+        SPDXID: SPDXRef-A
+
+        FileName: ./b.c
+        SPDXID: SPDXRef-B
+
+        PackageName: q
+        SPDXID: SPDXRef-Q
+        SPDX
+      pkgs = Spdx::Format::TagValue::Parser.parse(input).packages.not_nil!
+      pkgs[0].has_files.should eq(["SPDXRef-A", "SPDXRef-B"])
+      pkgs[1].has_files.should be_nil
+    end
+
+    it "splits a comma-separated LicenseCrossReference into URLs" do
+      # As in SPDXTagExample-v2.3.spdx, whose JSON twin has two seeAlsos.
+      input = header + <<-SPDX
+        LicenseID: LicenseRef-2
+        ExtractedText: x
+        LicenseCrossReference: http://people.apache.org/~andyc/neko/LICENSE, http://justasample.url.com
+        LicenseCrossReference: http://example.org/a,b
+        LicenseCrossReference: <text>http://example.org/c,
+        </text>
+        SPDX
+      doc = Spdx::Format::TagValue::Parser.parse(input)
+      doc.extracted_licensing_infos.not_nil![0].see_alsos.should eq(
+        ["http://people.apache.org/~andyc/neko/LICENSE", "http://justasample.url.com",
+         "http://example.org/a,b", "http://example.org/c"])
+    end
+
     it "parses file LicenseComments" do
       input = header + "FileName: ./f\nSPDXID: SPDXRef-F\nLicenseComments: This license is used by Jena\n"
       doc = Spdx::Format::TagValue::Parser.parse(input)

@@ -6,16 +6,36 @@ module Spdx
           new(doc).generate
         end
 
+        @files_by_package : Hash(Int32?, Array(FileInfo))
+        @implied_contains = [] of {String, RelationshipType, String}
+
         def initialize(@doc : SpdxDocument)
           @output = String::Builder.new
+
+          # In tag-value a file belongs to the package it follows, and a file
+          # in no package precedes every package (SPDX 2.3 §5.2.3). A file
+          # goes under the first package whose `hasFiles` lists it; any other
+          # `hasFiles` entry is written as a CONTAINS relationship.
+          owner = {} of String => Int32
+          @doc.packages.try &.each_with_index do |pkg, i|
+            pkg.has_files.try &.each { |id| owner[id] ||= i }
+          end
+          files = @doc.files || [] of FileInfo
+          @files_by_package = files.group_by { |f| owner[f.spdx_id]? }
+          defined = files.map(&.spdx_id).to_set
+          @doc.packages.try &.each_with_index do |pkg, i|
+            pkg.has_files.try &.uniq.each do |id|
+              @implied_contains << {pkg.spdx_id, RelationshipType::CONTAINS, id} unless defined.includes?(id) && owner[id] == i
+            end
+          end
         end
 
         def generate : String
           write_document_header
           write_creation_info
           write_external_doc_refs
+          write_files(nil)
           write_packages
-          write_files
           write_snippets
           write_extracted_licenses
           write_relationships
@@ -58,7 +78,7 @@ module Spdx
 
         private def write_packages
           if pkgs = @doc.packages
-            pkgs.each do |pkg|
+            pkgs.each_with_index do |pkg, i|
               @output << "##### Package: #{pkg.name}\n\n"
               tag("PackageName", pkg.name)
               tag("SPDXID", pkg.spdx_id)
@@ -141,12 +161,13 @@ module Spdx
                 tag("ValidUntilDate", vd)
               end
               @output << "\n"
+              write_files(i)
             end
           end
         end
 
-        private def write_files
-          if files = @doc.files
+        private def write_files(package_index : Int32?)
+          if files = @files_by_package[package_index]?
             files.each do |f|
               tag("FileName", f.file_name)
               tag("SPDXID", f.spdx_id)
@@ -242,18 +263,20 @@ module Spdx
         private def write_relationships
           rels = @doc.relationships || [] of Relationship
           # Tag-value has no `documentDescribes`; SPDX 2.3 expresses it as
-          # `Relationship: SPDXRef-DOCUMENT DESCRIBES <id>` (§11).
-          describes = (@doc.document_describes || [] of String).reject do |id|
-            rels.any? { |r| r.relationship_type.describes? && r.spdx_element_id == @doc.spdx_id && r.related_spdx_element == id }
-          end
-          describes.each { |id| tag("Relationship", "#{@doc.spdx_id} DESCRIBES #{id}") }
+          # `Relationship: SPDXRef-DOCUMENT DESCRIBES <id>` (§11). Likewise
+          # for `hasFiles` entries that file placement cannot express.
+          implied = (@doc.document_describes || [] of String).map { |id| {@doc.spdx_id, RelationshipType::DESCRIBES, id} }
+          implied.concat(@implied_contains)
+          stated = rels.map { |r| {r.spdx_element_id, r.relationship_type, r.related_spdx_element} }.to_set
+          implied.reject! { |rel| stated.includes?(rel) }
+          implied.each { |from, type, to| tag("Relationship", "#{from} #{type} #{to}") }
           rels.each do |rel|
             tag("Relationship", "#{rel.spdx_element_id} #{rel.relationship_type} #{rel.related_spdx_element}")
             if c = rel.comment
               tag_multiline("RelationshipComment", c)
             end
           end
-          @output << "\n" unless rels.empty? && describes.empty?
+          @output << "\n" unless rels.empty? && implied.empty?
         end
 
         private def write_annotations

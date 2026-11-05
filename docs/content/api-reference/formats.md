@@ -45,8 +45,8 @@ Output order follows the SPDX specification:
 1. Document header (SPDXVersion, DataLicense, SPDXID, DocumentName, DocumentNamespace)
 2. Creation info (Creator, Created, LicenseListVersion)
 3. External document references
-4. Packages (including checksums, external refs, attribution texts, primary purpose, dates)
-5. Files (including checksums, contributors, attribution texts)
+4. Files not listed in any package's `hasFiles`
+5. Packages (including checksums, external refs, attribution texts, primary purpose, dates), each followed by the files in its `hasFiles`. SPDX 2.3 §5.2.3 makes a file part of the package it follows, and the parser reads it back that way
 6. Snippets (including license comments, attribution texts)
 7. Extracted licensing info
 8. Relationships

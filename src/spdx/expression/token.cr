@@ -106,6 +106,11 @@ module Spdx
           if @pos < @input.size && @input[@pos] == '+'
             @tokens << Token.new(TokenType::Plus, "+", @pos)
             @pos += 1
+            # SPDX 2.3 D.1: AND/OR need white space or parentheses on both
+            # sides and WITH needs white space, so `MIT+AND x` is invalid.
+            if @pos < @input.size && !(@input[@pos].ascii_whitespace? || @input[@pos] == ')')
+              raise ParseError.new("'+' must be followed by white space, ')' or the end of the expression at position #{@pos}")
+            end
           end
         end
       end
