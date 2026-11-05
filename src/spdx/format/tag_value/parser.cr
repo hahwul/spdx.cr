@@ -21,6 +21,9 @@ module Spdx
         @doc_fields : Hash(String, String)
         @doc_multi_fields : Hash(String, Array(String))
         @packages : Array(Hash(String, String | Array(String)))
+        # SPDXIDs of the files positioned after each package (parallel to
+        # `@packages`); SPDX 2.3 §5.2.3 makes that position mean "contained".
+        @package_files : Array(Array(String))
         @file_infos : Array(Hash(String, String | Array(String)))
         @snippets : Array(Hash(String, String | Array(String)))
         @relationships : Array({String, String, String, String?})
@@ -46,6 +49,7 @@ module Spdx
           @doc_fields = {} of String => String
           @doc_multi_fields = {} of String => Array(String)
           @packages = [] of Hash(String, String | Array(String))
+          @package_files = [] of Array(String)
           @file_infos = [] of Hash(String, String | Array(String))
           @snippets = [] of Hash(String, String | Array(String))
           @relationships = [] of {String, String, String, String?}
@@ -347,11 +351,16 @@ module Spdx
           when .package?
             if pkg = @current_pkg
               @packages << pkg
+              @package_files << [] of String
               @current_pkg = nil
             end
           when .file?
             if f = @current_file
               @file_infos << f
+              # A file belongs to the package that precedes it, if any.
+              unless (id = str_field(f, "SPDXID")).empty?
+                @package_files.last?.try &.<< id
+              end
               @current_file = nil
             end
           when .snippet?
@@ -406,7 +415,11 @@ module Spdx
           end
 
           unless @packages.empty?
-            doc.packages = @packages.map { |p| build_package(p) }
+            doc.packages = @packages.map_with_index do |p, i|
+              build_package(p).tap do |pkg|
+                pkg.has_files = @package_files[i] unless @package_files[i].empty?
+              end
+            end
           end
 
           unless @file_infos.empty?
@@ -443,10 +456,13 @@ module Spdx
 
           unless @extracted_licenses.empty?
             doc.extracted_licensing_infos = @extracted_licenses.map do |e|
+              # Each value is a URL (SPDX 2.3 §10.4), which cannot contain
+              # white space, so `, ` separates several URLs on one line, as
+              # in the official SPDXTagExample-v2.3.spdx.
               see_alsos = case v = e["LicenseCrossReference"]?
                           when Array(String) then v
                           when String        then [v]
-                          end
+                          end.try &.flat_map(&.split(/,\s+/))
 
               ExtractedLicensingInfo.new(
                 license_id: str_field(e, "LicenseID"),

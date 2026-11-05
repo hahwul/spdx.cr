@@ -158,6 +158,10 @@ module Spdx
           if pkg.files_analyzed == false && pkg.package_verification_code
             errors << "#{prefix}.packageVerificationCode must be omitted when filesAnalyzed is false"
           end
+          # Likewise licenseInfoFromFiles (SPDX 2.3 §7.14, Table 26).
+          if pkg.files_analyzed == false && pkg.license_info_from_files
+            errors << "#{prefix}.licenseInfoFromFiles must be omitted when filesAnalyzed is false"
+          end
 
           validate_license_expression("#{prefix}.licenseConcluded", pkg.license_concluded, errors)
           validate_license_expression("#{prefix}.licenseDeclared", pkg.license_declared, errors)
@@ -189,6 +193,10 @@ module Spdx
           errors << "#{prefix}.SPDXID is required" if f.spdx_id.empty?
           errors << "#{prefix}.SPDXID format invalid" if !f.spdx_id.empty? && !f.spdx_id.matches?(SPDX_ID_PATTERN)
           errors << "#{prefix}.fileName is required" if f.file_name.empty?
+          # SPDX 2.3 §8.4, Table 39: a SHA1 checksum is mandatory (1..1).
+          unless f.checksums.try &.any?(&.algorithm.sha1?)
+            errors << "#{prefix}.checksums must include a SHA1 checksum"
+          end
 
           validate_license_expression("#{prefix}.licenseConcluded", f.license_concluded, errors)
           if infos = f.license_info_in_files

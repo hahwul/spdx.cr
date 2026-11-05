@@ -47,7 +47,8 @@ Validation rules:
 | DESCRIBES relationship | At least one DESCRIBES relationship is required |
 | Package fields | `SPDXID`, `name`, `downloadLocation` required |
 | Package verification code | Optional; must be omitted when `filesAnalyzed` is `false` |
-| File fields | `SPDXID`, `fileName` required |
+| Package `licenseInfoFromFiles` | Optional; must be omitted when `filesAnalyzed` is `false` |
+| File fields | `SPDXID`, `fileName` and a `SHA1` checksum required |
 | Snippet fields | `SPDXID`, `snippetFromFile`, `ranges` required |
 | License fields | `licenseConcluded`, `licenseDeclared`, etc. are optional, but must be valid license expressions when present |
 | Relationship fields | `spdxElementId`, `relatedSpdxElement` required |

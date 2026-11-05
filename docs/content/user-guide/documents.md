@@ -132,10 +132,10 @@ Validation checks:
 **Packages:**
 - Required fields: `SPDXID`, `name`, `downloadLocation`
 - `SPDXID` must match `SPDXRef-[a-zA-Z0-9.-]+`
-- `packageVerificationCode` must be omitted when `filesAnalyzed` is `false`
+- `packageVerificationCode` and `licenseInfoFromFiles` must be omitted when `filesAnalyzed` is `false`
 
 **Files:**
-- Required fields: `SPDXID`, `fileName`
+- Required fields: `SPDXID`, `fileName`, and a `SHA1` checksum
 - `SPDXID` format validation
 
 **Snippets:**

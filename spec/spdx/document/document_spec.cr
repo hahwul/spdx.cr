@@ -266,6 +266,36 @@ describe Spdx::SpdxDocument do
     pkg.files_analyzed = false
     pkg.package_verification_code = Spdx::PackageVerificationCode.new("d6a770ba38583ed4bb4525bd96e50461655d2758")
     doc.validate.should eq(["packages[0].packageVerificationCode must be omitted when filesAnalyzed is false"])
+
+    # SPDX 2.3 §7.14 (Table 26): 0..0 (must be omitted) if FilesAnalyzed is false.
+    pkg.package_verification_code = nil
+    pkg.license_info_from_files = ["MIT"]
+    doc.validate.should eq(["packages[0].licenseInfoFromFiles must be omitted when filesAnalyzed is false"])
+  end
+
+  it "requires a SHA1 checksum on every file" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3",
+      data_license: "CC0-1.0",
+      spdx_id: "SPDXRef-DOCUMENT",
+      name: "Test",
+      document_namespace: "https://example.org/test",
+      creation_info: Spdx::CreationInfo.new(
+        created: "2024-01-01T00:00:00Z",
+        creators: ["Tool: test"]
+      )
+    )
+    file = Spdx::FileInfo.new(spdx_id: "SPDXRef-File", file_name: "./a.c")
+    doc.files = [file]
+    doc.document_describes = ["SPDXRef-File"]
+    # SPDX 2.3 §8.4 (Table 39): Required, 1..1 for SHA1.
+    doc.validate.should eq(["files[0].checksums must include a SHA1 checksum"])
+
+    file.checksums = [Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA256, "ab")]
+    doc.validate.should eq(["files[0].checksums must include a SHA1 checksum"])
+
+    file.checksums.not_nil! << Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA1, "da39a3ee5e6b4b0d3255bfef95601890afd80709")
+    doc.validate.should be_empty
   end
 
   it "serializes to JSON" do
