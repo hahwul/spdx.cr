@@ -20,7 +20,7 @@ spdx.cr provides a Crystal library and CLI tool for working with SPDX -- the ope
 ## Features
 
 - **License Expression Parser** -- Full recursive descent parser with correct operator precedence
-- **727 Licenses Embedded** -- Complete SPDX license list available at compile time, no network required
+- **740 Licenses Embedded** -- Complete SPDX license list available at compile time, no network required
 - **SPDX 2.3 Document Model** -- Full data model with JSON serialization
 - **Tag-Value & JSON Formats** -- Parse and generate both SPDX formats
 - **Expression Validation** -- Validate expressions against the official license list

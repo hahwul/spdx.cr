@@ -1,7 +1,7 @@
 require "../src/spdx"
 
 # =============================================================================
-# License lookup against the embedded SPDX license list (727 licenses)
+# License lookup against the embedded SPDX license list (740 licenses)
 # =============================================================================
 # `Spdx.license?` checks existence; `Spdx.find_license` returns a License
 # struct with metadata (OSI / FSF / deprecated flags). Use these to surface

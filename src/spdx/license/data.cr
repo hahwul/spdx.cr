@@ -1,12 +1,9 @@
-# Auto-generated from SPDX license-list-data
-# Do not edit manually
+# Auto-generated from SPDX license-list-data by
+# scripts/generate_license_data.cr. Do not edit manually.
 
 module Spdx
-  # Version of the SPDX License List this embedded snapshot was generated
-  # from. Detected from the set of licenses/exceptions present (landmark
-  # IDs: InnoSetup, Sun-PPP, DocBook-Schema present; pixar absent).
-  # Regenerate this file and update this value when refreshing the data.
-  LICENSE_LIST_VERSION = "3.26.0"
+  # Version of the SPDX License List this embedded snapshot was generated from.
+  LICENSE_LIST_VERSION = "3.29.0"
 
   # :nodoc:
   LICENSE_DATA = [
@@ -63,6 +60,7 @@ module Spdx
     {id: "Aspell-RU", name: "Aspell Russian License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "ASWF-Digital-Assets-1.0", name: "ASWF Digital Assets License version 1.0", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "ASWF-Digital-Assets-1.1", name: "ASWF Digital Assets License 1.1", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "atc-game", name: "atc Game License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Baekmuk", name: "Baekmuk License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Bahyph", name: "Bahyph License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Barr", name: "Barr License", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -80,6 +78,7 @@ module Spdx
     {id: "Borceux", name: "Borceux license", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Brian-Gladman-2-Clause", name: "Brian Gladman 2-Clause License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Brian-Gladman-3-Clause", name: "Brian Gladman 3-Clause License", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "Brian-Gladman-3-Clause-no-conversion", name: "Brian Gladman 3-Clause License (no conversion clause)", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-1-Clause", name: "BSD 1-Clause License", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "BSD-2-Clause", name: "BSD 2-Clause \"Simplified\" License", osi_approved: true, fsf_libre: true, deprecated: false},
     {id: "BSD-2-Clause-Darwin", name: "BSD 2-Clause - Ian Darwin variant", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -88,6 +87,7 @@ module Spdx
     {id: "BSD-2-Clause-NetBSD", name: "BSD 2-Clause NetBSD License", osi_approved: false, fsf_libre: true, deprecated: true},
     {id: "BSD-2-Clause-Patent", name: "BSD-2-Clause Plus Patent License", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "BSD-2-Clause-pkgconf-disclaimer", name: "BSD 2-Clause pkgconf disclaimer variant", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "BSD-2-Clause-pos-unchanged", name: "BSD 2-Clause - position unchanged variant", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-2-Clause-Views", name: "BSD 2-Clause with views sentence", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-3-Clause", name: "BSD 3-Clause \"New\" or \"Revised\" License", osi_approved: true, fsf_libre: true, deprecated: false},
     {id: "BSD-3-Clause-acpica", name: "BSD 3-Clause acpica variant", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -102,6 +102,7 @@ module Spdx
     {id: "BSD-3-Clause-No-Nuclear-License-2014", name: "BSD 3-Clause No Nuclear License 2014", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-3-Clause-No-Nuclear-Warranty", name: "BSD 3-Clause No Nuclear Warranty", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-3-Clause-Open-MPI", name: "BSD 3-Clause Open MPI variant", osi_approved: true, fsf_libre: false, deprecated: false},
+    {id: "BSD-3-Clause-OpenWebUI", name: "BSD 3-Clause - OpenWebUI variant", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-3-Clause-Sun", name: "BSD 3-Clause Sun Microsystems", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-3-Clause-Tso", name: "BSD 3-Clause Tso variant", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-4-Clause", name: "BSD 4-Clause \"Original\" or \"Old\" License", osi_approved: false, fsf_libre: true, deprecated: false},
@@ -110,16 +111,20 @@ module Spdx
     {id: "BSD-4.3RENO", name: "BSD 4.3 RENO License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-4.3TAHOE", name: "BSD 4.3 TAHOE License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Advertising-Acknowledgement", name: "BSD Advertising Acknowledgement License", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "BSD-ask-to-endorse", name: "BSD - ask to endorse", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "BSD-Attribution-HPND-disclaimer", name: "BSD with Attribution and HPND disclaimer", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Inferno-Nettverk", name: "BSD-Inferno-Nettverk", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Mark-Modifications", name: "BSD Mark Modifications License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Protection", name: "BSD Protection License", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "BSD-Source-alt-GPL", name: "BSD Source Code Attribution - GPL alternative", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Source-beginning-file", name: "BSD Source Code Attribution - beginning of file variant", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Source-Code", name: "BSD Source Code Attribution", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "BSD-Source-Code-no-disclaimer", name: "BSD Source Code Attribution - no disclaimer", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Systemics", name: "Systemics BSD variant license", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSD-Systemics-W3Works", name: "Systemics W3Works BSD variant license", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BSL-1.0", name: "Boost Software License 1.0", osi_approved: true, fsf_libre: true, deprecated: false},
     {id: "Buddy", name: "Buddy License", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "Bugroff", name: "Bugroff License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "BUSL-1.1", name: "Business Source License 1.1", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "bzip2-1.0.5", name: "bzip2 and libbzip2 License v1.0.5", osi_approved: false, fsf_libre: false, deprecated: true},
     {id: "bzip2-1.0.6", name: "bzip2 and libbzip2 License v1.0.6", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -148,6 +153,7 @@ module Spdx
     {id: "CC-BY-NC-2.5", name: "Creative Commons Attribution Non Commercial 2.5 Generic", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CC-BY-NC-3.0", name: "Creative Commons Attribution Non Commercial 3.0 Unported", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CC-BY-NC-3.0-DE", name: "Creative Commons Attribution Non Commercial 3.0 Germany", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "CC-BY-NC-3.0-IGO", name: "Creative Commons Attribution Non Commercial 3.0 IGO", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CC-BY-NC-4.0", name: "Creative Commons Attribution Non Commercial 4.0 International", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CC-BY-NC-ND-1.0", name: "Creative Commons Attribution Non Commercial No Derivatives 1.0 Generic", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CC-BY-NC-ND-2.0", name: "Creative Commons Attribution Non Commercial No Derivatives 2.0 Generic", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -187,7 +193,7 @@ module Spdx
     {id: "CC-SA-1.0", name: "Creative Commons Share Alike 1.0 Generic", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CC0-1.0", name: "Creative Commons Zero v1.0 Universal", osi_approved: false, fsf_libre: true, deprecated: false},
     {id: "CDDL-1.0", name: "Common Development and Distribution License 1.0", osi_approved: true, fsf_libre: true, deprecated: false},
-    {id: "CDDL-1.1", name: "Common Development and Distribution License 1.1", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "CDDL-1.1", name: "Common Development and Distribution License 1.1", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "CDL-1.0", name: "Common Documentation License 1.0", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CDLA-Permissive-1.0", name: "Community Data License Agreement Permissive 1.0", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CDLA-Permissive-2.0", name: "Community Data License Agreement Permissive 2.0", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -212,7 +218,7 @@ module Spdx
     {id: "CMU-Mach-nodoc", name: "CMU    Mach - no notices-in-documentation variant", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CNRI-Jython", name: "CNRI Jython License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CNRI-Python", name: "CNRI Python License", osi_approved: true, fsf_libre: false, deprecated: false},
-    {id: "CNRI-Python-GPL-Compatible", name: "CNRI Python Open Source GPL Compatible License Agreement", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "CNRI-Python-GPL-Compatible", name: "CNRI Python Open Source GPL Compatible License Agreement", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "COIL-1.0", name: "Copyfree Open Innovation License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Community-Spec-1.0", name: "Community Specification License 1.0", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Condor-1.1", name: "Condor Public License v1.1", osi_approved: false, fsf_libre: true, deprecated: false},
@@ -228,7 +234,7 @@ module Spdx
     {id: "CrystalStacker", name: "CrystalStacker License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "CUA-OPL-1.0", name: "CUA Office Public License v1.0", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "Cube", name: "Cube License", osi_approved: false, fsf_libre: false, deprecated: false},
-    {id: "curl", name: "curl License", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "curl", name: "curl License", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "cve-tou", name: "Common Vulnerability Enumeration ToU License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "D-FSL-1.0", name: "Deutsche Freie Software Lizenz", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "DEC-3-Clause", name: "DEC 3-Clause License", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -270,6 +276,7 @@ module Spdx
     {id: "Fair", name: "Fair License", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "FBM", name: "Fuzzy Bitmap License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "FDK-AAC", name: "Fraunhofer FDK AAC Codec Library", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "FDK-MPEG-H", name: "Fraunhofer FDK MPEG-H Software", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Ferguson-Twofish", name: "Ferguson Twofish License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Frameworx-1.0", name: "Frameworx Open License 1.0", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "FreeBSD-DOC", name: "FreeBSD Documentation License", osi_approved: false, fsf_libre: false, deprecated: false},
@@ -344,6 +351,7 @@ module Spdx
     {id: "hdparm", name: "hdparm License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "HIDAPI", name: "HIDAPI License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Hippocratic-2.1", name: "Hippocratic License 2.1", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "Hippocratic-3.0-core", name: "Hippocratic License 3.0", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "HP-1986", name: "Hewlett-Packard 1986 License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "HP-1989", name: "Hewlett-Packard 1989 License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "HPND", name: "Historical Permission Notice and Disclaimer", osi_approved: true, fsf_libre: true, deprecated: false},
@@ -383,6 +391,7 @@ module Spdx
     {id: "iMatix", name: "iMatix Standard Function Library Agreement", osi_approved: false, fsf_libre: true, deprecated: false},
     {id: "Imlib2", name: "Imlib2 License", osi_approved: false, fsf_libre: true, deprecated: false},
     {id: "Info-ZIP", name: "Info-ZIP License", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "Informatica", name: "Informatica License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Inner-Net-2.0", name: "Inner Net License v2.0", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "InnoSetup", name: "Inno Setup License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Intel", name: "Intel Open Source License", osi_approved: true, fsf_libre: true, deprecated: false},
@@ -493,6 +502,7 @@ module Spdx
     {id: "MulanPSL-2.0", name: "Mulan Permissive Software License, Version 2", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "Multics", name: "Multics License", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "Mup", name: "Mup License", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "MVT-1.1", name: "MVT License 1.1", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "NAIST-2003", name: "Nara Institute of Science and Technology License (2003)", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "NASA-1.3", name: "NASA Open Source Agreement 1.3", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "Naumen", name: "Naumen Public License", osi_approved: true, fsf_libre: false, deprecated: false},
@@ -598,7 +608,7 @@ module Spdx
     {id: "psfrag", name: "psfrag License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "psutils", name: "psutils License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Python-2.0", name: "Python License 2.0", osi_approved: true, fsf_libre: true, deprecated: false},
-    {id: "Python-2.0.1", name: "Python License 2.0.1", osi_approved: false, fsf_libre: false, deprecated: false},
+    {id: "Python-2.0.1", name: "Python License 2.0.1", osi_approved: true, fsf_libre: false, deprecated: false},
     {id: "python-ldap", name: "Python ldap License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "Qhull", name: "Qhull License", osi_approved: false, fsf_libre: false, deprecated: false},
     {id: "QPL-1.0", name: "Q Public License 1.0", osi_approved: true, fsf_libre: true, deprecated: false},
@@ -774,6 +784,7 @@ module Spdx
     {id: "GNOME-examples-exception", name: "GNOME examples exception", deprecated: false},
     {id: "GNU-compiler-exception", name: "GNU Compiler Exception", deprecated: false},
     {id: "gnu-javamail-exception", name: "GNU JavaMail exception", deprecated: false},
+    {id: "Google-Patent-WebM", name: "Google Additional IP Rights Grant (Patents) - WebM", deprecated: false},
     {id: "GPL-3.0-389-ds-base-exception", name: "GPL-3.0 389 DS Base Exception", deprecated: false},
     {id: "GPL-3.0-interface-exception", name: "GPL-3.0 Interface Exception", deprecated: false},
     {id: "GPL-3.0-linking-exception", name: "GPL-3.0 Linking Exception", deprecated: false},
@@ -814,6 +825,7 @@ module Spdx
     {id: "SHL-2.0", name: "Solderpad Hardware License v2.0", deprecated: false},
     {id: "SHL-2.1", name: "Solderpad Hardware License v2.1", deprecated: false},
     {id: "Simple-Library-Usage-exception", name: "Simple Library Usage Exception", deprecated: false},
+    {id: "Spelling-Provider-LGPL-exception", name: "Spelling Provider LGPL exception", deprecated: false},
     {id: "sqlitestudio-OpenSSL-exception", name: "sqlitestudio OpenSSL exception", deprecated: false},
     {id: "stunnel-exception", name: "stunnel Exception", deprecated: false},
     {id: "SWI-exception", name: "SWI exception", deprecated: false},

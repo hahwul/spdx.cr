@@ -101,4 +101,34 @@ describe Spdx::LicenseList do
       fsf.all?(&.fsf_libre?).should be_true
     end
   end
+
+  describe "embedded snapshot (SPDX License List v3.29.0)" do
+    it "reports the list version" do
+      Spdx::LicenseList.version.should eq("3.29.0")
+    end
+
+    # Keep README / docs counts in sync when this changes.
+    it "embeds the full list" do
+      Spdx::LicenseList.licenses.size.should eq(740)
+      Spdx::LicenseList.exceptions.size.should eq(86)
+    end
+
+    it "resolves a license and an exception added in v3.29.0" do
+      Spdx::LicenseList.find_license("BSD-ask-to-endorse").osi_approved?.should be_true
+      Spdx::LicenseList.exception?("Google-Patent-WebM").should be_true
+      result = Spdx.validate_expression("BSD-ask-to-endorse WITH Google-Patent-WebM")
+      result.errors.should be_empty
+      result.warnings.should be_empty
+    end
+
+    it "carries OSI approval changed in v3.29.0" do
+      Spdx::LicenseList.find_license("CDDL-1.1").osi_approved?.should be_true
+    end
+
+    # v3.27.0 through v3.29.0 deprecated no IDs; pin the existing ones.
+    it "still reports deprecated IDs as deprecated" do
+      Spdx::LicenseList.find_license("GPL-2.0").deprecated?.should be_true
+      Spdx::LicenseList.find_exception("Nokia-Qt-exception-1.1").deprecated?.should be_true
+    end
+  end
 end
