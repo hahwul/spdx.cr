@@ -12,8 +12,19 @@
 - The `spdx expression validate` CLI now exits non-zero when the result has
   errors, and prints an `Errors:` section in addition to `Warnings:`.
 
+### Changed
+
+- Embedded SPDX license list refreshed to v3.29.0 (740 licenses, 86
+  exceptions): 13 licenses and 2 exceptions added, none removed or newly
+  deprecated; `CDDL-1.1`, `CNRI-Python-GPL-Compatible`, `curl` and
+  `Python-2.0.1` are now OSI-approved. The previous snapshot was v3.28.0 but
+  `Spdx::LicenseList.version` misreported it as `"3.26.0"`; it now reports
+  `"3.29.0"`.
+
 ### Added
 
+- `scripts/generate_license_data.cr` regenerates `src/spdx/license/data.cr`
+  from a tagged spdx/license-list-data release.
 - `Spdx::Format::JSON` alias for `Spdx::Format::Json` (matches Crystal stdlib's
   `JSON` module casing). Both names resolve to the same Parser/Generator.
 

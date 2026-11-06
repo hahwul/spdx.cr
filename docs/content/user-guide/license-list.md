@@ -6,7 +6,7 @@ weight = 3
 
 ## Overview
 
-spdx.cr embeds the complete SPDX license list (727 licenses and 84 exceptions) as compile-time constants. No network access is needed at runtime.
+spdx.cr embeds the complete SPDX License List v3.29.0 (740 licenses and 86 exceptions) as compile-time constants. No network access is needed at runtime.
 
 ## Finding Licenses
 
@@ -83,8 +83,8 @@ Access the complete list:
 
 ```crystal
 all = Spdx::LicenseList.licenses
-puts all.size  # => 727
+puts all.size  # => 740
 
 all_exceptions = Spdx::LicenseList.exceptions
-puts all_exceptions.size  # => 84
+puts all_exceptions.size  # => 86
 ```

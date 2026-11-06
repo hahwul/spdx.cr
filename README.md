@@ -1,6 +1,6 @@
 # spdx.cr
 
-SPDX license expression parser and SPDX 2.3 document toolkit for Crystal. Includes 727 embedded SPDX licenses with zero external dependencies.
+SPDX license expression parser and SPDX 2.3 document toolkit for Crystal. Includes 740 embedded SPDX licenses (SPDX License List v3.29.0) with zero external dependencies.
 
 ## Installation
 
@@ -66,7 +66,7 @@ crystal run examples/document_io.cr     # JSON ↔ Tag-Value document conversion
 ## Features
 
 - License expression parser with full operator precedence (AND, OR, WITH, +)
-- 727 SPDX licenses embedded at compile time
+- 740 SPDX licenses and 86 exceptions (SPDX License List v3.29.0) embedded at compile time
 - SPDX 2.3 document model with validation
 - JSON and Tag-Value format support (parse / generate / convert)
 - CLI tool

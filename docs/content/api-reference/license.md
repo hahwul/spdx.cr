@@ -57,11 +57,11 @@ Module for querying the embedded SPDX license database. All lookups are case-ins
 
 ### `.licenses : Array(License)`
 
-Returns all 727 SPDX licenses.
+Returns all 740 SPDX licenses.
 
 ### `.exceptions : Array(LicenseException)`
 
-Returns all 84 SPDX license exceptions.
+Returns all 86 SPDX license exceptions.
 
 ### `.find_license(id : String) : License`
 
