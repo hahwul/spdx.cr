@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://spdx.cr.hahwul.com/sitemap.xml
