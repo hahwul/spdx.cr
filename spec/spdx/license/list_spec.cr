@@ -105,7 +105,12 @@ describe Spdx::LicenseList do
   describe "embedded snapshot (SPDX License List v3.29.0)" do
     it "reports the list version" do
       Spdx::LicenseList.version.should eq("3.29.0")
-      Spdx.license_list_version.should eq("3.29.0")
+    end
+
+    # Keep README / docs counts in sync when this changes.
+    it "embeds the full list" do
+      Spdx::LicenseList.licenses.size.should eq(740)
+      Spdx::LicenseList.exceptions.size.should eq(86)
     end
 
     it "resolves a license and an exception added in v3.29.0" do

@@ -63,6 +63,10 @@ Returns all 740 SPDX licenses.
 
 Returns all 86 SPDX license exceptions.
 
+### `.version : String`
+
+The SPDX License List version the embedded data was generated from (`"3.29.0"`). Also available as `Spdx.license_list_version`.
+
 ### `.find_license(id : String) : License`
 
 Finds a license by ID (case-insensitive).
