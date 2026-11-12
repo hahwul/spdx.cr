@@ -8,7 +8,16 @@ module Spdx
     SPDX_ID_PATTERN = /\ASPDXRef-[a-zA-Z0-9.\-]+\z/
     URI_PATTERN     = /^https?:\/\/.+/
     CREATOR_PATTERN = /\A(Tool|Organization|Person):\s*.+\z/
-    ISO8601_PATTERN = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z\z/
+    # The SPDX 2.3 JSON schema's date-time pattern (month 01-12, day 01-31,
+    # hour 00-23, 23:59:60 for a leap second), plus optional fractional
+    # seconds.
+    ISO8601_PATTERN = /\A\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T(([01]\d|2[0-3]):[0-5]\d:[0-5]\d|23:59:60)(\.\d+)?Z\z/
+    private ISO8601_MESSAGE = "must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)"
+    # Checksum values are hexadecimal (SPDX 2.3 §8.4; the JSON schema's
+    # `checksumValue` pattern).
+    HEX_PATTERN = /\A[0-9a-fA-F]+\z/
+    # `DocumentRef-[idstring]`, where §6.6's idstring also allows "+".
+    EXTERNAL_DOCUMENT_ID_PATTERN = /\ADocumentRef-[A-Za-z0-9.\-+]+\z/
     # `"LicenseRef-"[idstring]` where idstring is letters, numbers, "." and
     # "-" (SPDX 2.3 §10.1).
     LICENSE_REF_PATTERN = Expression::Validator::LICENSE_REF_PATTERN
@@ -120,6 +129,10 @@ module Spdx
       # CreationInfo validation
       validate_creation_info(errors)
 
+      validate_external_document_refs(errors)
+      validate_annotations("annotations", annotations, errors)
+      validate_annotation_subjects(errors)
+
       # Package validation
       validate_packages(errors)
 
@@ -154,7 +167,7 @@ module Spdx
     private def validate_creation_info(errors : Array(String))
       ci = creation_info
       errors << "creationInfo.created is required" if ci.created.empty?
-      errors << "creationInfo.created must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)" if !ci.created.empty? && !utf8_match?(ci.created, ISO8601_PATTERN)
+      validate_date("creationInfo.created", ci.created, errors) unless ci.created.empty?
       errors << "creationInfo.creators must not be empty" if ci.creators.empty?
 
       ci.creators.each_with_index do |creator, i|
@@ -187,6 +200,12 @@ module Spdx
 
           validate_license_expression("#{prefix}.licenseConcluded", pkg.license_concluded, errors)
           validate_license_expression("#{prefix}.licenseDeclared", pkg.license_declared, errors)
+          # §7.25-7.27: same format as `created`.
+          pkg.release_date.try { |d| validate_date("#{prefix}.releaseDate", d, errors) }
+          pkg.built_date.try { |d| validate_date("#{prefix}.builtDate", d, errors) }
+          pkg.valid_until_date.try { |d| validate_date("#{prefix}.validUntilDate", d, errors) }
+          validate_checksums(prefix, pkg.checksums, errors)
+          validate_annotations("#{prefix}.annotations", pkg.annotations, errors)
           if infos = pkg.license_info_from_files
             infos.each_with_index do |li, j|
               validate_license_expression("#{prefix}.licenseInfoFromFiles[#{j}]", li, errors)
@@ -202,8 +221,18 @@ module Spdx
     # known licenses/exceptions (or be the reserved values NONE / NOASSERTION).
     private def validate_license_expression(field : String, value : String?, errors : Array(String))
       return if value.nil?
-      result = Spdx.validate_expression(value)
-      result.errors.each { |e| errors << "#{field}: #{e}" }
+      ast = Spdx.parse(value)
+      Expression::Validator.validate(ast).errors.each { |e| errors << "#{field}: #{e}" }
+      # Like an element reference, `DocumentRef-x:LicenseRef-y` names an
+      # external document, which must be declared (SPDX 2.3 §6.6).
+      refs = Set(String).new
+      collect_document_refs(ast, refs)
+      unless refs.empty?
+        declared = external_document_ref_ids
+        refs.each do |doc_ref|
+          errors << "#{field}: #{doc_ref} is not declared in externalDocumentRefs" unless declared.includes?(doc_ref)
+        end
+      end
     rescue ex : ParseError
       errors << "#{field}: invalid SPDX license expression (#{ex.message})"
     end
@@ -219,6 +248,9 @@ module Spdx
           unless f.checksums.try &.any?(&.algorithm.sha1?)
             errors << "#{prefix}.checksums must include a SHA1 checksum"
           end
+
+          validate_checksums(prefix, f.checksums, errors)
+          validate_annotations("#{prefix}.annotations", f.annotations, errors)
 
           validate_license_expression("#{prefix}.licenseConcluded", f.license_concluded, errors)
           if infos = f.license_info_in_files
@@ -238,6 +270,7 @@ module Spdx
           errors << "#{prefix}.SPDXID format invalid" if !s.spdx_id.empty? && !utf8_match?(s.spdx_id, SPDX_ID_PATTERN)
           errors << "#{prefix}.snippetFromFile is required" if s.snippet_from_file.empty?
           errors << "#{prefix}.ranges must not be empty" if s.ranges.empty?
+          validate_annotations("#{prefix}.annotations", s.annotations, errors)
 
           validate_license_expression("#{prefix}.licenseConcluded", s.license_concluded, errors)
           if infos = s.license_info_in_snippets
@@ -246,6 +279,89 @@ module Spdx
             end
           end
         end
+      end
+    end
+
+    private def validate_date(field : String, value : String, errors : Array(String))
+      errors << "#{field} #{ISO8601_MESSAGE}" unless utf8_match?(value, ISO8601_PATTERN) && calendar_date?(value)
+    end
+
+    # The pattern bounds each component; this rejects dates such as
+    # 2023-02-29 or 2024-04-31. Only the date is parsed, so a leap second
+    # (23:59:60) is not rejected.
+    private def calendar_date?(value : String) : Bool
+      Time.parse_utc(value[0, 10], "%F")
+      true
+    rescue Time::Format::Error | ArgumentError
+      false
+    end
+
+    private def validate_checksums(prefix : String, checksums : Array(Checksum)?, errors : Array(String))
+      checksums.try &.each_with_index do |c, i|
+        validate_checksum_value("#{prefix}.checksums[#{i}]", c, errors)
+      end
+    end
+
+    private def validate_checksum_value(field : String, checksum : Checksum, errors : Array(String))
+      errors << "#{field}.checksumValue must be hexadecimal" unless utf8_match?(checksum.value, HEX_PATTERN)
+    end
+
+    # SPDX 2.3 clause 12: annotator, date and comment are each mandatory
+    # for an annotation; annotator has the creator format, date the
+    # `created` format.
+    private def validate_annotations(prefix : String, anns : Array(Annotation)?, errors : Array(String))
+      anns.try &.each_with_index do |ann, i|
+        p = "#{prefix}[#{i}]"
+        if ann.annotator.empty?
+          errors << "#{p}.annotator is required"
+        elsif !utf8_match?(ann.annotator, CREATOR_PATTERN)
+          errors << "#{p}.annotator must start with 'Tool:', 'Organization:', or 'Person:'"
+        end
+        if ann.annotation_date.empty?
+          errors << "#{p}.annotationDate is required"
+        else
+          validate_date("#{p}.annotationDate", ann.annotation_date, errors)
+        end
+        errors << "#{p}.comment is required" if ann.comment.empty?
+      end
+    end
+
+    # Element annotations were nested into their element when parsed, so a
+    # document-level `SPDXREF` must name the document itself or a declared
+    # external element (§12.4); otherwise it is lost when written as JSON.
+    private def validate_annotation_subjects(errors : Array(String))
+      annotations.try &.each_with_index do |ann, i|
+        next unless id = ann.spdx_element_id
+        next if id == spdx_id || valid_element_reference?(id, defined_spdx_ids, external_document_ref_ids)
+        errors << "annotations[#{i}].SPDXREF references undefined element '#{id}'"
+      end
+    end
+
+    # SPDX 2.3 §6.6: `DocumentRef-[idstring] [SPDX document URI] [Checksum]`,
+    # the idstring unique within the document and the URI a namespace (§6.5).
+    private def validate_external_document_refs(errors : Array(String))
+      seen = Set(String).new
+      external_document_refs.try &.each_with_index do |ref, i|
+        prefix = "externalDocumentRefs[#{i}]"
+        id = ref.external_document_id
+        if !utf8_match?(id, EXTERNAL_DOCUMENT_ID_PATTERN)
+          errors << "#{prefix}.externalDocumentId must be of the form 'DocumentRef-[idstring]'"
+        elsif !seen.add?(id)
+          errors << "#{prefix}.externalDocumentId duplicates '#{id}'"
+        end
+        errors << "#{prefix}.spdxDocument must be a valid URI" unless utf8_match?(ref.spdx_document, URI_PATTERN)
+        errors << "#{prefix}.spdxDocument must not contain a '#' fragment delimiter" if ref.spdx_document.includes?('#')
+        validate_checksum_value("#{prefix}.checksum", ref.checksum, errors)
+      end
+    end
+
+    private def collect_document_refs(node : Expression::Node, refs : Set(String)) : Nil
+      case node
+      when Expression::LicenseRefNode    then node.document_ref.try { |d| refs << d }
+      when Expression::WithExceptionNode then collect_document_refs(node.license, refs)
+      when Expression::CompoundNode
+        collect_document_refs(node.left, refs)
+        collect_document_refs(node.right, refs)
       end
     end
 

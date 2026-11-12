@@ -57,10 +57,14 @@ Valid:      yes
 ```bash
 $ spdx expression validate "MIT AND FakeLicense"
 Expression: MIT AND FakeLicense
-Valid:      yes
-Warnings:
+Valid:      no
+Errors:
   - Unknown license: FakeLicense
 ```
+
+Unknown licenses and exceptions are errors and make the command exit with
+status 1; deprecated identifiers and non-canonical casing are printed under
+`Warnings:` and still exit 0.
 
 ### spdx license list
 
@@ -70,7 +74,10 @@ List SPDX licenses with optional filters:
 $ spdx license list
 $ spdx license list --osi    # OSI-approved only
 $ spdx license list --fsf    # FSF libre only
+$ spdx license list --osi --fsf    # both OSI-approved and FSF libre
 ```
+
+Deprecated identifiers are not listed.
 
 ### spdx license info
 
@@ -93,9 +100,9 @@ Search licenses by ID or name:
 $ spdx license search apache
 ID                             Name
 --------------------------------------------------------------------------------
-Apache-1.0                     Apache License 1.0
-Apache-1.1                     Apache License 1.1
-Apache-2.0                     Apache License 2.0
+Apache-1.0                     Apache License 1.0 [FSF]
+Apache-1.1                     Apache License 1.1 [OSI] [FSF]
+Apache-2.0                     Apache License 2.0 [OSI] [FSF]
 
 Found: 3 licenses
 ```

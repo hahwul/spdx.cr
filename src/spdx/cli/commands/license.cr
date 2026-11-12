@@ -4,16 +4,15 @@ module Spdx
       module License
         extend self
 
-        def list(osi_only : Bool = false, fsf_only : Bool = false)
-          licenses = if osi_only
-                       LicenseList.osi_approved
-                     elsif fsf_only
-                       LicenseList.fsf_libre
-                     else
-                       LicenseList.licenses
-                     end
+        # The non-deprecated licenses `list` prints; `--osi --fsf` means both.
+        def filter(osi_only : Bool = false, fsf_only : Bool = false) : Array(Spdx::License)
+          LicenseList.licenses.select do |lic|
+            !lic.deprecated? && (!osi_only || lic.osi_approved?) && (!fsf_only || lic.fsf_libre?)
+          end
+        end
 
-          licenses = licenses.reject(&.deprecated?)
+        def list(osi_only : Bool = false, fsf_only : Bool = false)
+          licenses = filter(osi_only, fsf_only)
 
           puts "%-30s %s" % {"ID", "Name"}
           puts "-" * 80

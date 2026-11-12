@@ -1,4 +1,5 @@
 require "./spdx"
+require "./spdx/cli/commands/load_document"
 require "./spdx/cli/commands/expression"
 require "./spdx/cli/commands/license"
 require "./spdx/cli/commands/validate"

@@ -125,7 +125,7 @@ Validation checks:
 - `documentNamespace` must be a valid HTTP(S) URI
 
 **Creation info:**
-- `created` must be ISO 8601 format (`YYYY-MM-DDThh:mm:ssZ`)
+- `created` must be ISO 8601 format (`YYYY-MM-DDThh:mm:ssZ`, month 01-12, hour 00-23, ...); package dates and `annotationDate` are checked the same way
 - `creators` must not be empty
 - Each creator must start with `Tool:`, `Organization:`, or `Person:`
 
