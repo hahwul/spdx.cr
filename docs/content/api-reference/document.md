@@ -31,6 +31,8 @@ The root class representing an SPDX 2.3 document. Includes `JSON::Serializable`.
 ### `#validate : Array(String)`
 
 Returns a list of validation error messages. Empty if the document is valid.
+It never raises: a document built in code (or loaded with `from_json`) that
+holds invalid UTF-8 gets the error `document contains invalid UTF-8`.
 
 Validation rules:
 

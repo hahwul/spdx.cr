@@ -74,6 +74,15 @@ ast = Spdx.parse("DocumentRef-ext1:LicenseRef-custom-1")
 # => LicenseRefNode(document_ref: "DocumentRef-ext1", license_ref: "LicenseRef-custom-1")
 ```
 
+The part after `LicenseRef-` / `DocumentRef-` must be one or more letters,
+digits, `-` or `.` (SPDX 2.3 Annex D `idstring`). Anything else is a
+`ParseError`:
+
+```crystal
+Spdx.valid_expression?("LicenseRef-")               # => false (Malformed LicenseRef)
+Spdx.valid_expression?("DocumentRef-:LicenseRef-a") # => false (Malformed DocumentRef)
+```
+
 ## Validation
 
 Check if an expression string is valid:

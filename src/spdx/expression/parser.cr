@@ -126,15 +126,13 @@ module Spdx
             LicenseNode.new(id)
           end
         when .license_ref?
-          ref = current.value
-          advance
+          ref = expect_idstring(Validator::LICENSE_REF_PATTERN, "LicenseRef")
           LicenseRefNode.new(ref)
         when .document_ref?
-          doc_ref = current.value
           # `"DocumentRef-"(idstring)":""LicenseRef-"(idstring)` is a single
           # ABNF concatenation (SPDX 2.3 D.1/D.3): no white space around ':'.
-          adjacent_at = current.position + doc_ref.size
-          advance
+          adjacent_at = current.position + current.value.size
+          doc_ref = expect_idstring(Validator::DOCUMENT_REF_PATTERN, "DocumentRef")
           unless current.type.colon? && current.position == adjacent_at
             raise ParseError.new("Expected ':' immediately after DocumentRef at position #{current.position}")
           end
@@ -142,8 +140,7 @@ module Spdx
           unless current.type.license_ref? && current.position == adjacent_at + 1
             raise ParseError.new("Expected LicenseRef immediately after 'DocumentRef-…:' at position #{current.position}")
           end
-          lic_ref = current.value
-          advance
+          lic_ref = expect_idstring(Validator::LICENSE_REF_PATTERN, "LicenseRef")
           LicenseRefNode.new(lic_ref, doc_ref)
         else
           raise ParseError.new("Unexpected token '#{current.value}' at position #{current.position}")
@@ -155,6 +152,17 @@ module Spdx
         if @operators > MAX_OPERATORS
           raise ParseError.new("Expression has more than #{MAX_OPERATORS} AND/OR operators at position #{current.position}")
         end
+      end
+
+      # Annex D: `idstring = 1*(ALPHA / DIGIT / "-" / ".")`, so an empty or
+      # non-ASCII-alphanumeric idstring after the prefix is a syntax error.
+      private def expect_idstring(pattern : Regex, kind : String) : String
+        value = current.value
+        unless value.matches?(pattern)
+          raise ParseError.new("Malformed #{kind}: #{value} at position #{current.position}")
+        end
+        advance
+        value
       end
 
       private def expect_exception_id : String

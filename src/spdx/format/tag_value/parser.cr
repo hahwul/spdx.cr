@@ -18,6 +18,9 @@ module Spdx
         @in_multiline : Bool = false
         @multiline_tag : String = ""
         @multiline_value : String::Builder = String::Builder.new
+        # Line terminator of the previous line inside a `<text>` block, so a
+        # CRLF file's text keeps its "\r\n" (tools-java turns it into "\n").
+        @multiline_eol : String = "\n"
         @doc_fields : Hash(String, String)
         @doc_multi_fields : Hash(String, Array(String))
         @packages : Array(Hash(String, String | Array(String)))
@@ -47,7 +50,8 @@ module Spdx
         def initialize(input : String)
           # Regex matching raises ArgumentError on malformed UTF-8.
           raise FormatError.new("Invalid SPDX tag-value: input is not valid UTF-8") unless input.valid_encoding?
-          @lines = input.lines
+          # Keep terminators: `<text>` blocks preserve CRLF line breaks.
+          @lines = input.lines(chomp: false)
           @doc_fields = {} of String => String
           @doc_multi_fields = {} of String => Array(String)
           @packages = [] of Hash(String, String | Array(String))
@@ -66,6 +70,7 @@ module Spdx
               handle_multiline(line)
             else
               parse_line(line.strip)
+              @multiline_eol = line_eol(line)
             end
           end
 
@@ -109,15 +114,21 @@ module Spdx
         # Each continuation line follows a line break, even when the text
         # so far is empty (`<text>` alone on its line keeps the leading "\n",
         # as tools-java reads it); the closing line is trimmed.
+        # Line breaks are kept as written ("\n" or "\r\n").
         private def handle_multiline(line : String)
-          @multiline_value << "\n"
+          @multiline_value << @multiline_eol
           if close = line.index("</text>")
             @multiline_value << line[0, close].strip
             @in_multiline = false
             handle_tag(@multiline_tag, @multiline_value.to_s)
           else
-            @multiline_value << line
+            @multiline_eol = line_eol(line)
+            @multiline_value << line.rchop(@multiline_eol)
           end
+        end
+
+        private def line_eol(line : String) : String
+          line.ends_with?("\r\n") ? "\r\n" : "\n"
         end
 
         private def handle_tag(tag : String, value : String)

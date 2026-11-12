@@ -74,11 +74,13 @@ module Spdx
         when LicenseRefNode
           # The referenced license itself is user-defined, so only the shape
           # of the identifier is checked against the ABNF.
-          unless node.license_ref.matches?(LICENSE_REF_PATTERN)
+          # The parser rejects these; nodes built in code may still carry
+          # them, including invalid UTF-8 (which makes `matches?` raise).
+          unless node.license_ref.valid_encoding? && node.license_ref.matches?(LICENSE_REF_PATTERN)
             errors << "Malformed LicenseRef: #{node.license_ref}"
           end
           if doc_ref = node.document_ref
-            unless doc_ref.matches?(DOCUMENT_REF_PATTERN)
+            unless doc_ref.valid_encoding? && doc_ref.matches?(DOCUMENT_REF_PATTERN)
               errors << "Malformed DocumentRef: #{doc_ref}"
             end
           end
