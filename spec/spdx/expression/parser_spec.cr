@@ -177,4 +177,33 @@ describe Spdx::Expression::Parser do
       Spdx::Expression::Parser.parse("MIT AND NONE")
     end
   end
+
+  # SPDX 2.3 D.1: `"DocumentRef-"(idstring)":""LicenseRef-"(idstring)` is one
+  # ABNF concatenation, so no white space may surround the ':'.
+  it "rejects white space around the DocumentRef ':' separator" do
+    ["DocumentRef-a :LicenseRef-b", "DocumentRef-a: LicenseRef-b", "DocumentRef-a : LicenseRef-b"].each do |expr|
+      expect_raises(Spdx::ParseError, /immediately after/) { Spdx::Expression::Parser.parse(expr) }
+    end
+  end
+
+  it "raises ParseError on malformed UTF-8" do
+    expect_raises(Spdx::ParseError, /UTF-8/) do
+      Spdx::Expression::Parser.parse(String.new(Bytes[0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x52, 0x65, 0x66, 0x2d, 0xff]))
+    end
+  end
+
+  it "tokenizes long non-ASCII input in linear time" do
+    input = "LicenseRef-\u00e9" + " AND MIT" * 10_000
+    elapsed = Time.measure { Spdx::Expression::Parser.parse(input) }
+    elapsed.should be < 2.seconds # quadratic String#[] took seconds here
+  end
+
+  it "caps the AND/OR chain length so walking the AST cannot overflow the stack" do
+    max = Spdx::Expression::Parser::MAX_OPERATORS
+    ok = Spdx::Expression::Parser.parse("MIT" + " AND MIT" * max)
+    Spdx::Expression::Validator.validate(ok).valid?.should be_true
+    expect_raises(Spdx::ParseError, /more than #{max}/) do
+      Spdx::Expression::Parser.parse("MIT" + " AND MIT" * (max + 1))
+    end
+  end
 end

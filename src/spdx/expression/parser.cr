@@ -6,10 +6,15 @@ module Spdx
       # this defends the recursive-descent parser against stack-overflow
       # DoS from a hostile SBOM (e.g. ten thousand nested parens).
       MAX_DEPTH = 256
+      # Each AND/OR adds a level to the (left-deep) AST, which `to_s`, the
+      # validator and callers walk recursively; an unbounded operator chain
+      # overflows the stack (uncatchable) on a hostile 1 MB expression.
+      MAX_OPERATORS = 10_000
 
       @tokens : Array(Token)
       @pos : Int32 = 0
       @depth : Int32 = 0
+      @operators : Int32 = 0
       # Whether the primary expression just parsed was a parenthesized group,
       # which the SPDX grammar forbids as the left operand of `WITH`.
       @last_primary_parenthesised : Bool = false
@@ -19,6 +24,8 @@ module Spdx
       end
 
       def initialize(input : String)
+        # The validator's regexes raise ArgumentError on malformed UTF-8.
+        raise ParseError.new("Expression is not valid UTF-8") unless input.valid_encoding?
         @tokens = Tokenizer.new(input).tokenize
       end
 
@@ -49,6 +56,7 @@ module Spdx
       private def parse_or : Node
         left = parse_and
         while current.type.or?
+          count_operator
           advance
           right = parse_and
           left = CompoundNode.new(CompoundNode::Operator::OR, left, right)
@@ -60,6 +68,7 @@ module Spdx
       private def parse_and : Node
         left = parse_with
         while current.type.and?
+          count_operator
           advance
           right = parse_with
           left = CompoundNode.new(CompoundNode::Operator::AND, left, right)
@@ -122,16 +131,29 @@ module Spdx
           LicenseRefNode.new(ref)
         when .document_ref?
           doc_ref = current.value
+          # `"DocumentRef-"(idstring)":""LicenseRef-"(idstring)` is a single
+          # ABNF concatenation (SPDX 2.3 D.1/D.3): no white space around ':'.
+          adjacent_at = current.position + doc_ref.size
           advance
-          expect(TokenType::Colon, "Expected ':' after DocumentRef")
-          unless current.type.license_ref?
-            raise ParseError.new("Expected LicenseRef after DocumentRef at position #{current.position}")
+          unless current.type.colon? && current.position == adjacent_at
+            raise ParseError.new("Expected ':' immediately after DocumentRef at position #{current.position}")
+          end
+          advance
+          unless current.type.license_ref? && current.position == adjacent_at + 1
+            raise ParseError.new("Expected LicenseRef immediately after 'DocumentRef-…:' at position #{current.position}")
           end
           lic_ref = current.value
           advance
           LicenseRefNode.new(lic_ref, doc_ref)
         else
           raise ParseError.new("Unexpected token '#{current.value}' at position #{current.position}")
+        end
+      end
+
+      private def count_operator : Nil
+        @operators += 1
+        if @operators > MAX_OPERATORS
+          raise ParseError.new("Expression has more than #{MAX_OPERATORS} AND/OR operators at position #{current.position}")
         end
       end
 

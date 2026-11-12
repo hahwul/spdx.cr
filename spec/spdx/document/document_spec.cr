@@ -446,4 +446,21 @@ describe Spdx::SpdxDocument do
     )
     doc.validate.none?(&.includes?("ISO 8601")).should be_true
   end
+
+  # SPDX 2.3 clause 11.1 / the 2.3 JSON schema's relationshipType enum.
+  it "flags relationship types that are not in SPDX 2.3" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3",
+      data_license: "CC0-1.0",
+      spdx_id: "SPDXRef-DOCUMENT",
+      name: "Test",
+      document_namespace: "https://example.org/test",
+      creation_info: Spdx::CreationInfo.new(created: "2024-01-01T00:00:00Z", creators: ["Tool: test"])
+    )
+    doc.relationships = [
+      Spdx::Relationship.new(spdx_element_id: "SPDXRef-DOCUMENT", relationship_type: Spdx::RelationshipType::DESCRIBES, related_spdx_element: "NOASSERTION"),
+      Spdx::Relationship.new(spdx_element_id: "SPDXRef-DOCUMENT", relationship_type: Spdx::RelationshipType::AFFECTS, related_spdx_element: "NOASSERTION"),
+    ]
+    doc.validate.should eq(["relationships[1].relationshipType 'AFFECTS' is not an SPDX 2.3 relationship type"])
+  end
 end

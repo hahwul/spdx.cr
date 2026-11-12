@@ -24,11 +24,14 @@ module Spdx
     end
 
     class Tokenizer
-      @input : String
+      # Chars, not the String: `String#[]` by char index is O(n) on
+      # non-ASCII input, which made tokenizing quadratic.
+      @input : Array(Char)
       @pos : Int32 = 0
       @tokens : Array(Token)
 
-      def initialize(@input : String)
+      def initialize(input : String)
+        @input = input.chars
         @tokens = [] of Token
       end
 
@@ -81,7 +84,7 @@ module Spdx
           @pos += 1
         end
 
-        word = @input[start...@pos]
+        word = @input[start...@pos].join
 
         case word.upcase
         when "AND"

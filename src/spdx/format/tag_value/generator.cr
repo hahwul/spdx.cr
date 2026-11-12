@@ -310,11 +310,13 @@ module Spdx
           if value.includes?("\n")
             raise FormatError.new("#{name} is a single-line tag-value field but its value contains a line break")
           end
-          @output << name << ": " << value << "\n"
+          tag_multiline(name, value)
         end
 
+        # A bare value containing `<text>` would open a text block on read
+        # (tools-java looks for it anywhere on the line), so it is wrapped too.
         private def tag_multiline(name : String, value : String)
-          if value.includes?("\n")
+          if value.includes?("\n") || value.includes?("<text>")
             guard_text(name, value)
             @output << name << ": <text>" << value << "</text>\n"
           else

@@ -166,4 +166,23 @@ describe Spdx::Format::TagValue::Generator do
     output.should_not contain("PackageLicenseConcluded")
     output.should_not contain("PackageCopyrightText")
   end
+
+  it "round-trips text whose first line is empty" do
+    doc = minimal_document
+    doc.comment = "\nsecond line"
+    reparsed = Spdx::Format::TagValue::Parser.parse(Spdx::Format::TagValue::Generator.generate(doc))
+    reparsed.comment.should eq("\nsecond line")
+  end
+
+  it "wraps a single-line value containing <text> so it cannot open a text block" do
+    doc = minimal_document
+    doc.comment = "<text> is the delimiter"
+    doc.packages = [package_with.tap(&.name=("<text>pkg"))]
+    output = Spdx::Format::TagValue::Generator.generate(doc)
+    output.should contain("DocumentComment: <text><text> is the delimiter</text>")
+    reparsed = Spdx::Format::TagValue::Parser.parse(output)
+    reparsed.comment.should eq("<text> is the delimiter")
+    reparsed.packages.not_nil![0].name.should eq("<text>pkg")
+    reparsed.packages.not_nil![0].download_location.should eq(doc.packages.not_nil![0].download_location)
+  end
 end

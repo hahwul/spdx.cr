@@ -93,4 +93,12 @@ describe Spdx::Expression::Validator do
     result.valid?.should be_true
     result.warnings.any?(&.includes?("Redundant '+'")).should be_true
   end
+
+  # SPDX 2.3 D.2: exception ids match case-insensitively, like license ids.
+  it "warns on non-canonical exception casing" do
+    ast = Spdx::Expression::Parser.parse("GPL-2.0-only WITH classpath-exception-2.0")
+    result = Spdx::Expression::Validator.validate(ast)
+    result.valid?.should be_true
+    result.warnings.should contain("Non-canonical casing: 'classpath-exception-2.0' should be 'Classpath-exception-2.0'")
+  end
 end

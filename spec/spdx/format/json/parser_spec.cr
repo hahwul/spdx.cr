@@ -137,4 +137,10 @@ describe Spdx::Format::Json::Parser do
     anns.size.should eq(1)
     anns[0].as_h.has_key?("spdxElementId").should be_false
   end
+
+  # RFC 8259 §8.1; the validator's regexes raise ArgumentError on bad bytes.
+  it "raises FormatError on malformed UTF-8" do
+    json = File.read("spec/fixtures/example.spdx.json").sub("\"Example\"", "\"Ex\xFFample\"")
+    expect_raises(Spdx::FormatError, /UTF-8/) { Spdx::Format::Json::Parser.parse(json) }
+  end
 end

@@ -83,12 +83,20 @@ Spdx.valid_expression?("MIT AND Apache-2.0")  # => true
 Spdx.valid_expression?("AND MIT")              # => false
 ```
 
-Validate against the official license list to get warnings:
+Validate against the official license list. Unknown licenses and exceptions are `errors`:
 
 ```crystal
 result = Spdx.validate_expression("MIT AND FakeLicense-1.0")
-result.valid?     # => true (syntactically valid)
-result.warnings   # => ["Unknown license: FakeLicense-1.0"]
+result.valid?     # => false
+result.errors     # => ["Unknown license: FakeLicense-1.0"]
+```
+
+Identifiers match case-insensitively (SPDX 2.3 D.2), so a non-canonical casing of a license or exception id is only a warning:
+
+```crystal
+result = Spdx.validate_expression("GPL-2.0-only WITH classpath-exception-2.0")
+result.valid?     # => true
+result.warnings   # => ["Non-canonical casing: 'classpath-exception-2.0' should be 'Classpath-exception-2.0'"]
 ```
 
 The validator also warns about deprecated licenses:

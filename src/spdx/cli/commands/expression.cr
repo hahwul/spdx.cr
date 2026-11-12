@@ -37,6 +37,8 @@ module Spdx
         private def print_ast(node : Spdx::Expression::Node, depth : Int32)
           indent = "  " * depth
           case node
+          when Spdx::Expression::ReservedNode
+            puts "#{indent}Reserved: #{node.value}"
           when Spdx::Expression::LicenseNode
             suffix = node.or_later? ? " (or-later)" : ""
             puts "#{indent}License: #{node.id}#{suffix}"

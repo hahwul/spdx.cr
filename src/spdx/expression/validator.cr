@@ -65,6 +65,9 @@ module Spdx
             if exc.deprecated?
               warnings << "Deprecated exception: #{node.exception}"
             end
+            if exc.id != node.exception
+              warnings << "Non-canonical casing: '#{node.exception}' should be '#{exc.id}'"
+            end
           else
             errors << "Unknown exception: #{node.exception}"
           end

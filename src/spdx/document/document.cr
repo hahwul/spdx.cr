@@ -11,6 +11,13 @@ module Spdx
     # `"LicenseRef-"[idstring]` where idstring is letters, numbers, "." and
     # "-" (SPDX 2.3 §10.1).
     LICENSE_REF_PATTERN = /^LicenseRef-[a-zA-Z0-9.\-]+$/
+    # Accepted on input for backwards compatibility, but not in SPDX 2.3
+    # (clause 11.1, Table 68; the 2.3 JSON schema's relationshipType enum).
+    NON_SPDX_2_3_RELATIONSHIP_TYPES = {
+      RelationshipType::GENERATED_FROM_COPY, RelationshipType::GENERATES_COPY,
+      RelationshipType::VARIANT_DISTRIBUTION_OF, RelationshipType::SECURITY_FIX_FOR,
+      RelationshipType::AFFECTS,
+    }
 
     @[JSON::Field(key: "spdxVersion")]
     property spdx_version : String
@@ -273,6 +280,9 @@ module Spdx
 
       relationships.try &.each_with_index do |rel, i|
         prefix = "relationships[#{i}]"
+        if NON_SPDX_2_3_RELATIONSHIP_TYPES.includes?(rel.relationship_type)
+          errors << "#{prefix}.relationshipType '#{rel.relationship_type}' is not an SPDX 2.3 relationship type"
+        end
         if rel.spdx_element_id.empty?
           errors << "#{prefix}.spdxElementId is required"
         elsif !valid_element_reference?(rel.spdx_element_id, defined, external)
