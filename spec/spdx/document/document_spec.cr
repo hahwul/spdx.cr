@@ -513,7 +513,8 @@ describe Spdx::SpdxDocument do
     # SPDX 2.3 JSON schema: month 01-12, day 01-31, hour 00-23, minute and
     # second 00-59 (23:59:60 for a leap second).
     ["2024-13-01T00:00:00Z", "2024-00-10T00:00:00Z", "2024-01-32T00:00:00Z",
-     "2024-01-01T24:00:00Z", "2024-01-01T00:60:00Z", "2024-01-01T00:00:61Z"].each do |created|
+     "2024-01-01T24:00:00Z", "2024-01-01T00:60:00Z", "2024-01-01T00:00:61Z",
+     "2023-02-29T00:00:00Z", "2024-04-31T00:00:00Z"].each do |created|
       doc = Spdx::SpdxDocument.new(
         spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
         name: "t", document_namespace: "https://example.org/t",
@@ -521,6 +522,12 @@ describe Spdx::SpdxDocument do
       )
       doc.validate.should contain("creationInfo.created must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
     end
+    ok = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+      name: "t", document_namespace: "https://example.org/t",
+      creation_info: Spdx::CreationInfo.new(created: "2024-02-29T00:00:00Z", creators: ["Tool: t"])
+    )
+    ok.validate.none?(&.includes?("ISO 8601")).should be_true
     leap = Spdx::SpdxDocument.new(
       spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
       name: "t", document_namespace: "https://example.org/t",
@@ -538,7 +545,7 @@ describe Spdx::SpdxDocument do
     pkg = Spdx::Package.new(spdx_id: "SPDXRef-p", name: "p", download_location: "NOASSERTION")
     pkg.release_date = "2024-01-01"
     pkg.built_date = "yesterday"
-    pkg.valid_until_date = "2024-02-30T00:00:00+09:00"
+    pkg.valid_until_date = "2024-01-01T00:00:00+09:00"
     pkg.checksums = [Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA256, "not-hex")]
     pkg.annotations = [Spdx::Annotation.new("2024-01-01", Spdx::AnnotationType::OTHER, "someone", "")]
     doc.packages = [pkg]
@@ -588,5 +595,27 @@ describe Spdx::SpdxDocument do
       license_declared: "(DocumentRef-missing:LicenseRef-b WITH Classpath-exception-2.0) AND MIT")]
     doc.document_describes = ["SPDXRef-p"]
     doc.validate.should eq(["packages[0].licenseDeclared: DocumentRef-missing is not declared in externalDocumentRefs"])
+
+    doc.packages.not_nil![0].license_declared = "DocumentRef-missing:LicenseRef-a AND DocumentRef-missing:LicenseRef-b"
+    doc.validate.should eq(["packages[0].licenseDeclared: DocumentRef-missing is not declared in externalDocumentRefs"])
+  end
+
+  it "flags a document-level annotation whose SPDXREF names no known element" do
+    tv = File.read("spec/fixtures/example.spdx") + <<-TV
+
+      Annotator: Person: a
+      AnnotationDate: 2024-01-01T00:00:00Z
+      AnnotationType: OTHER
+      SPDXREF: SPDXRef-typo
+      AnnotationComment: c
+
+      Annotator: Person: b
+      AnnotationDate: 2024-01-01T00:00:00Z
+      AnnotationType: REVIEW
+      SPDXREF: SPDXRef-DOCUMENT
+      AnnotationComment: d
+      TV
+    errors = Spdx::Format::TagValue::Parser.parse(tv).validate
+    errors.should eq(["annotations[0].SPDXREF references undefined element 'SPDXRef-typo'"])
   end
 end

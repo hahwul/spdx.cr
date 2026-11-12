@@ -131,6 +131,7 @@ module Spdx
 
       validate_external_document_refs(errors)
       validate_annotations("annotations", annotations, errors)
+      validate_annotation_subjects(errors)
 
       # Package validation
       validate_packages(errors)
@@ -224,9 +225,12 @@ module Spdx
       Expression::Validator.validate(ast).errors.each { |e| errors << "#{field}: #{e}" }
       # Like an element reference, `DocumentRef-x:LicenseRef-y` names an
       # external document, which must be declared (SPDX 2.3 §6.6).
-      document_refs(ast).each do |doc_ref|
-        unless external_document_ref_ids.includes?(doc_ref)
-          errors << "#{field}: #{doc_ref} is not declared in externalDocumentRefs"
+      refs = Set(String).new
+      collect_document_refs(ast, refs)
+      unless refs.empty?
+        declared = external_document_ref_ids
+        refs.each do |doc_ref|
+          errors << "#{field}: #{doc_ref} is not declared in externalDocumentRefs" unless declared.includes?(doc_ref)
         end
       end
     rescue ex : ParseError
@@ -279,7 +283,17 @@ module Spdx
     end
 
     private def validate_date(field : String, value : String, errors : Array(String))
-      errors << "#{field} #{ISO8601_MESSAGE}" unless utf8_match?(value, ISO8601_PATTERN)
+      errors << "#{field} #{ISO8601_MESSAGE}" unless utf8_match?(value, ISO8601_PATTERN) && calendar_date?(value)
+    end
+
+    # The pattern bounds each component; this rejects dates such as
+    # 2023-02-29 or 2024-04-31. Only the date is parsed, so a leap second
+    # (23:59:60) is not rejected.
+    private def calendar_date?(value : String) : Bool
+      Time.parse_utc(value[0, 10], "%F")
+      true
+    rescue Time::Format::Error | ArgumentError
+      false
     end
 
     private def validate_checksums(prefix : String, checksums : Array(Checksum)?, errors : Array(String))
@@ -312,6 +326,17 @@ module Spdx
       end
     end
 
+    # Element annotations were nested into their element when parsed, so a
+    # document-level `SPDXREF` must name the document itself or a declared
+    # external element (§12.4); otherwise it is lost when written as JSON.
+    private def validate_annotation_subjects(errors : Array(String))
+      annotations.try &.each_with_index do |ann, i|
+        next unless id = ann.spdx_element_id
+        next if id == spdx_id || valid_element_reference?(id, defined_spdx_ids, external_document_ref_ids)
+        errors << "annotations[#{i}].SPDXREF references undefined element '#{id}'"
+      end
+    end
+
     # SPDX 2.3 §6.6: `DocumentRef-[idstring] [SPDX document URI] [Checksum]`,
     # the idstring unique within the document and the URI a namespace (§6.5).
     private def validate_external_document_refs(errors : Array(String))
@@ -330,12 +355,13 @@ module Spdx
       end
     end
 
-    private def document_refs(node : Expression::Node) : Array(String)
+    private def collect_document_refs(node : Expression::Node, refs : Set(String)) : Nil
       case node
-      when Expression::LicenseRefNode    then node.document_ref.try { |d| [d] } || [] of String
-      when Expression::WithExceptionNode then document_refs(node.license)
-      when Expression::CompoundNode      then document_refs(node.left) + document_refs(node.right)
-      else                                    [] of String
+      when Expression::LicenseRefNode    then node.document_ref.try { |d| refs << d }
+      when Expression::WithExceptionNode then collect_document_refs(node.license, refs)
+      when Expression::CompoundNode
+        collect_document_refs(node.left, refs)
+        collect_document_refs(node.right, refs)
       end
     end
 

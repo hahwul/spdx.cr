@@ -8,7 +8,7 @@ module Spdx
         content = ::File.read(file)
         # JSON may begin with white space (RFC 8259 §2); a tag-value line
         # never starts with '{'.
-        if file.ends_with?(".json") || content.lstrip.starts_with?('{')
+        if file.ends_with?(".json") || content.each_char.find { |c| !c.ascii_whitespace? } == '{'
           Format::Json::Parser.parse(content)
         else
           Format::TagValue::Parser.parse(content)
