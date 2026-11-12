@@ -45,6 +45,10 @@ Validation rules:
 | `documentNamespace` | Must be a valid HTTP(S) URI |
 | `creationInfo.created` | Must be ISO 8601 format (`YYYY-MM-DDThh:mm:ssZ`) |
 | `creationInfo.creators` | Must not be empty; each must start with `Tool:`, `Organization:`, or `Person:` |
+| Dates | `created`, package `releaseDate`/`builtDate`/`validUntilDate` and `annotationDate` must be `YYYY-MM-DDThh:mm:ssZ` with in-range components |
+| Annotations | `annotator` (creator format), `annotationDate` and `comment` required |
+| Checksums | `checksumValue` must be hexadecimal |
+| `externalDocumentRefs` | Unique `DocumentRef-[idstring]` id, a URI without `#`; a `DocumentRef-x:` in a license expression must be declared here |
 | SPDXID format | All SPDXIDs must match `SPDXRef-[a-zA-Z0-9.-]+` |
 | DESCRIBES relationship | At least one DESCRIBES relationship is required |
 | Package fields | `SPDXID`, `name`, `downloadLocation` required |

@@ -508,4 +508,85 @@ describe Spdx::SpdxDocument do
     errors.should contain("packages[0].SPDXID format invalid")
     errors.should contain("hasExtractedLicensingInfos[0].licenseId must be of the form 'LicenseRef-[idstring]'")
   end
+
+  it "rejects 'created' timestamps with out-of-range date or time components" do
+    # SPDX 2.3 JSON schema: month 01-12, day 01-31, hour 00-23, minute and
+    # second 00-59 (23:59:60 for a leap second).
+    ["2024-13-01T00:00:00Z", "2024-00-10T00:00:00Z", "2024-01-32T00:00:00Z",
+     "2024-01-01T24:00:00Z", "2024-01-01T00:60:00Z", "2024-01-01T00:00:61Z"].each do |created|
+      doc = Spdx::SpdxDocument.new(
+        spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+        name: "t", document_namespace: "https://example.org/t",
+        creation_info: Spdx::CreationInfo.new(created: created, creators: ["Tool: t"])
+      )
+      doc.validate.should contain("creationInfo.created must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
+    end
+    leap = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+      name: "t", document_namespace: "https://example.org/t",
+      creation_info: Spdx::CreationInfo.new(created: "2016-12-31T23:59:60Z", creators: ["Tool: t"])
+    )
+    leap.validate.none?(&.includes?("ISO 8601")).should be_true
+  end
+
+  it "validates package dates, annotations, checksums and external document refs like 'created'" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+      name: "t", document_namespace: "https://example.org/t",
+      creation_info: Spdx::CreationInfo.new(created: "2024-01-01T00:00:00Z", creators: ["Tool: t"])
+    )
+    pkg = Spdx::Package.new(spdx_id: "SPDXRef-p", name: "p", download_location: "NOASSERTION")
+    pkg.release_date = "2024-01-01"
+    pkg.built_date = "yesterday"
+    pkg.valid_until_date = "2024-02-30T00:00:00+09:00"
+    pkg.checksums = [Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA256, "not-hex")]
+    pkg.annotations = [Spdx::Annotation.new("2024-01-01", Spdx::AnnotationType::OTHER, "someone", "")]
+    doc.packages = [pkg]
+    doc.files = [Spdx::FileInfo.new(spdx_id: "SPDXRef-f", file_name: "./f").tap do |f|
+      f.checksums = [Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA1, "")]
+    end]
+    doc.annotations = [Spdx::Annotation.new("", Spdx::AnnotationType::REVIEW, "", "ok")]
+    doc.external_document_refs = [
+      Spdx::ExternalDocumentRef.new("DocumentRef-", "not a uri", Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA1, "zz")),
+      Spdx::ExternalDocumentRef.new("DocumentRef-a+b", "https://example.org/a", Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA1, "d6a770ba38583ed4bb4525bd96e50461655d2759")),
+      Spdx::ExternalDocumentRef.new("DocumentRef-a+b", "https://example.org/a#x", Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA1, "D6A770BA38583ED4BB4525BD96E50461655D2759")),
+    ]
+    doc.document_describes = ["SPDXRef-p"]
+
+    errors = doc.validate
+    errors.should contain("packages[0].releaseDate must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
+    errors.should contain("packages[0].builtDate must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
+    errors.should contain("packages[0].validUntilDate must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
+    errors.should contain("packages[0].checksums[0].checksumValue must be hexadecimal")
+    errors.should contain("packages[0].annotations[0].annotationDate must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
+    errors.should contain("packages[0].annotations[0].annotator must start with 'Tool:', 'Organization:', or 'Person:'")
+    errors.should contain("packages[0].annotations[0].comment is required")
+    errors.should contain("files[0].checksums[0].checksumValue must be hexadecimal")
+    errors.should contain("annotations[0].annotationDate is required")
+    errors.should contain("annotations[0].annotator is required")
+    errors.should contain("externalDocumentRefs[0].externalDocumentId must be of the form 'DocumentRef-[idstring]'")
+    errors.should contain("externalDocumentRefs[0].spdxDocument must be a valid URI")
+    errors.should contain("externalDocumentRefs[0].checksum.checksumValue must be hexadecimal")
+    errors.should contain("externalDocumentRefs[2].externalDocumentId duplicates 'DocumentRef-a+b'")
+    errors.should contain("externalDocumentRefs[2].spdxDocument must not contain a '#' fragment delimiter")
+    # §6.6 allows '+' in a DocumentRef idstring; upper-case hex is valid.
+    errors.none?(&.starts_with?("externalDocumentRefs[1]")).should be_true
+    errors.none?(&.includes?("externalDocumentRefs[2].checksum")).should be_true
+  end
+
+  it "flags a license-expression DocumentRef that is not declared in externalDocumentRefs" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+      name: "t", document_namespace: "https://example.org/t",
+      creation_info: Spdx::CreationInfo.new(created: "2024-01-01T00:00:00Z", creators: ["Tool: t"])
+    )
+    doc.external_document_refs = [
+      Spdx::ExternalDocumentRef.new("DocumentRef-known", "https://example.org/k", Spdx::Checksum.new(Spdx::ChecksumAlgorithm::SHA1, "d6a770ba38583ed4bb4525bd96e50461655d2759")),
+    ]
+    doc.packages = [Spdx::Package.new(spdx_id: "SPDXRef-p", name: "p", download_location: "NOASSERTION",
+      license_concluded: "MIT OR DocumentRef-known:LicenseRef-a",
+      license_declared: "(DocumentRef-missing:LicenseRef-b WITH Classpath-exception-2.0) AND MIT")]
+    doc.document_describes = ["SPDXRef-p"]
+    doc.validate.should eq(["packages[0].licenseDeclared: DocumentRef-missing is not declared in externalDocumentRefs"])
+  end
 end

@@ -37,6 +37,20 @@
 
 ### Fixed
 
+- `SpdxDocument#validate` accepted `created` timestamps with an out-of-range
+  month, day, hour, minute or second (`2024-13-01T25:00:00Z`); it now uses
+  the SPDX 2.3 JSON schema's ranges (fractional seconds are still accepted).
+- `SpdxDocument#validate` did not check what the SPDX 2.3 JSON schema and
+  spec enforce on fields other than `created`: package `releaseDate`,
+  `builtDate` and `validUntilDate`; each annotation's `annotationDate`,
+  `annotator` and `comment` (clause 12); checksum values (hexadecimal,
+  §8.4); and `externalDocumentRefs` (§6.6: `DocumentRef-` id, unique, a URI
+  without `#`). A license expression's `DocumentRef-x:` must now also be
+  declared in `externalDocumentRefs`, as element references already had to be.
+- `spdx validate` / `spdx convert` crashed with an unhandled `IO::Error` on a
+  directory or unreadable file, and read a JSON file starting with white
+  space as tag-value.
+- `spdx license list --osi --fsf` ignored `--fsf`; the filters now combine.
 - Tag-value `<text>` blocks: a block with nothing after `<text>` on its first
   line kept no leading line break (tools-java keeps it), text after `</text>`
   on the closing line kept the block open, and an unterminated block silently
