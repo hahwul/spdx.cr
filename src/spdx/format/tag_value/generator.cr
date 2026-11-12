@@ -310,8 +310,7 @@ module Spdx
           if value.includes?("\n")
             raise FormatError.new("#{name} is a single-line tag-value field but its value contains a line break")
           end
-          return tag_multiline(name, value) if value.includes?("<text>")
-          @output << name << ": " << value << "\n"
+          tag_multiline(name, value)
         end
 
         # A bare value containing `<text>` would open a text block on read

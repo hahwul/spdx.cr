@@ -6,10 +6,15 @@ module Spdx
       # this defends the recursive-descent parser against stack-overflow
       # DoS from a hostile SBOM (e.g. ten thousand nested parens).
       MAX_DEPTH = 256
+      # Each AND/OR adds a level to the (left-deep) AST, which `to_s`, the
+      # validator and callers walk recursively; an unbounded operator chain
+      # overflows the stack (uncatchable) on a hostile 1 MB expression.
+      MAX_OPERATORS = 10_000
 
       @tokens : Array(Token)
       @pos : Int32 = 0
       @depth : Int32 = 0
+      @operators : Int32 = 0
       # Whether the primary expression just parsed was a parenthesized group,
       # which the SPDX grammar forbids as the left operand of `WITH`.
       @last_primary_parenthesised : Bool = false
@@ -51,6 +56,7 @@ module Spdx
       private def parse_or : Node
         left = parse_and
         while current.type.or?
+          count_operator
           advance
           right = parse_and
           left = CompoundNode.new(CompoundNode::Operator::OR, left, right)
@@ -62,6 +68,7 @@ module Spdx
       private def parse_and : Node
         left = parse_with
         while current.type.and?
+          count_operator
           advance
           right = parse_with
           left = CompoundNode.new(CompoundNode::Operator::AND, left, right)
@@ -140,6 +147,13 @@ module Spdx
           LicenseRefNode.new(lic_ref, doc_ref)
         else
           raise ParseError.new("Unexpected token '#{current.value}' at position #{current.position}")
+        end
+      end
+
+      private def count_operator : Nil
+        @operators += 1
+        if @operators > MAX_OPERATORS
+          raise ParseError.new("Expression has more than #{MAX_OPERATORS} AND/OR operators at position #{current.position}")
         end
       end
 

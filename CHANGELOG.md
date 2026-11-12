@@ -45,6 +45,10 @@
 - `SpdxDocument#validate` reports relationship types that are not in SPDX 2.3
   (they fail the 2.3 JSON schema).
 - `spdx expression parse NONE` printed no AST line.
+- Expression parsing was quadratic on non-ASCII input (`String#[]` by char
+  index), and a long flat AND/OR chain built an AST deep enough to overflow
+  the stack in `to_s`/the validator. The tokenizer now indexes a char array,
+  and more than `Parser::MAX_OPERATORS` (10 000) operators is a `ParseError`.
 - `Spdx::LicenseList.version` / `Spdx.license_list_version` reported
   `"3.26.0"` although the embedded data was SPDX License List v3.28.0. It now
   reports the generated version (`"3.29.0"`).
