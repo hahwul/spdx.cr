@@ -177,4 +177,18 @@ describe Spdx::Expression::Parser do
       Spdx::Expression::Parser.parse("MIT AND NONE")
     end
   end
+
+  # SPDX 2.3 D.1: `"DocumentRef-"(idstring)":""LicenseRef-"(idstring)` is one
+  # ABNF concatenation, so no white space may surround the ':'.
+  it "rejects white space around the DocumentRef ':' separator" do
+    ["DocumentRef-a :LicenseRef-b", "DocumentRef-a: LicenseRef-b", "DocumentRef-a : LicenseRef-b"].each do |expr|
+      expect_raises(Spdx::ParseError, /immediately after/) { Spdx::Expression::Parser.parse(expr) }
+    end
+  end
+
+  it "raises ParseError on malformed UTF-8" do
+    expect_raises(Spdx::ParseError, /UTF-8/) do
+      Spdx::Expression::Parser.parse(String.new(Bytes[0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x52, 0x65, 0x66, 0x2d, 0xff]))
+    end
+  end
 end

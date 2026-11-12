@@ -2,8 +2,9 @@ require "json"
 
 module Spdx
   # Relationship types defined by SPDX 2.3 (clause 11.1, Table 68). A few
-  # non-standard values are retained after `AMENDS` for backwards
-  # compatibility with documents this library previously accepted.
+  # non-standard values are retained for backwards compatibility with
+  # documents this library previously accepted; `SpdxDocument#validate`
+  # reports them (see `NON_SPDX_2_3_RELATIONSHIP_TYPES`).
   enum RelationshipType
     DESCRIBES
     DESCRIBED_BY

@@ -290,4 +290,38 @@ describe Spdx::Format::TagValue::Parser do
       output.should contain("SPDXREF: SPDXRef-P")
     end
   end
+
+  describe "<text> blocks" do
+    header = <<-SPDX
+      SPDXVersion: SPDX-2.3
+      DataLicense: CC0-1.0
+      SPDXID: SPDXRef-DOCUMENT
+      DocumentName: t
+      DocumentNamespace: https://example.org/t
+
+      SPDX
+
+    it "keeps a leading line break when <text> ends its line" do
+      doc = Spdx::Format::TagValue::Parser.parse(header + "DocumentComment: <text>\n\nfirst\nlast</text>\n")
+      doc.comment.should eq("\n\nfirst\nlast")
+    end
+
+    it "ends the block at </text> even when text follows it" do
+      doc = Spdx::Format::TagValue::Parser.parse(header + "DocumentComment: <text>a\nb</text> trailing\nCreator: Tool: x\n")
+      doc.comment.should eq("a\nb")
+      doc.creation_info.creators.should eq(["Tool: x"])
+    end
+
+    it "raises FormatError on an unterminated block instead of swallowing the rest" do
+      expect_raises(Spdx::FormatError, /Unterminated/) do
+        Spdx::Format::TagValue::Parser.parse(header + "DocumentComment: <text>oops\nPackageName: p\n")
+      end
+    end
+  end
+
+  it "raises FormatError on malformed UTF-8" do
+    expect_raises(Spdx::FormatError, /UTF-8/) do
+      Spdx::Format::TagValue::Parser.parse(String.new(Bytes[0x53, 0x50, 0x44, 0x58, 0x49, 0x44, 0x3a, 0x20, 0xc3]))
+    end
+  end
 end

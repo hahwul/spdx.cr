@@ -45,6 +45,8 @@ module Spdx
         end
 
         def initialize(input : String)
+          # Regex matching raises ArgumentError on malformed UTF-8.
+          raise FormatError.new("Invalid SPDX tag-value: input is not valid UTF-8") unless input.valid_encoding?
           @lines = input.lines
           @doc_fields = {} of String => String
           @doc_multi_fields = {} of String => Array(String)
@@ -67,6 +69,10 @@ module Spdx
             end
           end
 
+          # An unclosed `<text>` block would silently swallow every tag after
+          # it; tools-java rejects it as well.
+          raise FormatError.new("Unterminated <text> block for tag '#{@multiline_tag}'") if @in_multiline
+
           flush_section
           build_document
         end
@@ -85,9 +91,11 @@ module Spdx
               @multiline_tag = tag
               @multiline_value = String::Builder.new
               text_start = value[6..]
-              if text_start.ends_with?("</text>")
+              # Like tools-java, the block ends at the first `</text>`; any
+              # trailing text on that line is ignored.
+              if close = text_start.index("</text>")
                 @in_multiline = false
-                handle_tag(tag, text_start[...-7])
+                handle_tag(tag, text_start[0, close])
               else
                 @multiline_value << text_start
               end
@@ -98,15 +106,16 @@ module Spdx
           end
         end
 
+        # Each continuation line follows a line break, even when the text
+        # so far is empty (`<text>` alone on its line keeps the leading "\n",
+        # as tools-java reads it); the closing line is trimmed.
         private def handle_multiline(line : String)
-          if line.strip.ends_with?("</text>")
-            stripped = line.strip[...-7]
-            @multiline_value << "\n" unless @multiline_value.empty?
-            @multiline_value << stripped unless stripped.empty?
+          @multiline_value << "\n"
+          if close = line.index("</text>")
+            @multiline_value << line[0, close].strip
             @in_multiline = false
             handle_tag(@multiline_tag, @multiline_value.to_s)
           else
-            @multiline_value << "\n" unless @multiline_value.empty?
             @multiline_value << line
           end
         end

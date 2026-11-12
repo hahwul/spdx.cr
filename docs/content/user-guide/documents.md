@@ -145,6 +145,7 @@ Validation checks:
 **Relationships:**
 - At least one `DESCRIBES` relationship is required
 - `spdxElementId` and `relatedSpdxElement` must not be empty
+- `relationshipType` must be an SPDX 2.3 type; `GENERATED_FROM_COPY`, `GENERATES_COPY`, `VARIANT_DISTRIBUTION_OF`, `SECURITY_FIX_FOR` and `AFFECTS` are parsed but reported
 
 ## Enum Types
 

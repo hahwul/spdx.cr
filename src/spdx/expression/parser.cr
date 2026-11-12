@@ -19,6 +19,8 @@ module Spdx
       end
 
       def initialize(input : String)
+        # The validator's regexes raise ArgumentError on malformed UTF-8.
+        raise ParseError.new("Expression is not valid UTF-8") unless input.valid_encoding?
         @tokens = Tokenizer.new(input).tokenize
       end
 
@@ -122,10 +124,16 @@ module Spdx
           LicenseRefNode.new(ref)
         when .document_ref?
           doc_ref = current.value
+          # `"DocumentRef-"(idstring)":""LicenseRef-"(idstring)` is a single
+          # ABNF concatenation (SPDX 2.3 D.1/D.3): no white space around ':'.
+          adjacent_at = current.position + doc_ref.size
           advance
-          expect(TokenType::Colon, "Expected ':' after DocumentRef")
-          unless current.type.license_ref?
-            raise ParseError.new("Expected LicenseRef after DocumentRef at position #{current.position}")
+          unless current.type.colon? && current.position == adjacent_at
+            raise ParseError.new("Expected ':' immediately after DocumentRef at position #{current.position}")
+          end
+          advance
+          unless current.type.license_ref? && current.position == adjacent_at + 1
+            raise ParseError.new("Expected LicenseRef immediately after 'DocumentRef-…:' at position #{current.position}")
           end
           lic_ref = current.value
           advance

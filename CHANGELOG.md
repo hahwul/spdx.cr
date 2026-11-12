@@ -28,6 +28,23 @@
 
 ### Fixed
 
+- Tag-value `<text>` blocks: a block with nothing after `<text>` on its first
+  line kept no leading line break (tools-java keeps it), text after `</text>`
+  on the closing line kept the block open, and an unterminated block silently
+  swallowed the rest of the document (now a `FormatError`).
+- The tag-value generator wraps any value containing `<text>` in a text block,
+  so it can no longer open a block when read back.
+- Malformed UTF-8 input to the JSON, tag-value and expression parsers raised
+  `ArgumentError` from regex matching; it now raises `FormatError` /
+  `ParseError`.
+- `DocumentRef-a : LicenseRef-b` (white space around `:`) parsed; SPDX 2.3
+  Annex D writes `license-ref` as one concatenation, so it is now a
+  `ParseError`.
+- The expression validator warns on non-canonical exception casing, as it
+  already did for licenses.
+- `SpdxDocument#validate` reports relationship types that are not in SPDX 2.3
+  (they fail the 2.3 JSON schema).
+- `spdx expression parse NONE` printed no AST line.
 - `Spdx::LicenseList.version` / `Spdx.license_list_version` reported
   `"3.26.0"` although the embedded data was SPDX License List v3.28.0. It now
   reports the generated version (`"3.29.0"`).
