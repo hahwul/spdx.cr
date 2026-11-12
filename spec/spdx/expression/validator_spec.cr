@@ -83,6 +83,11 @@ describe Spdx::Expression::Validator do
     Spdx::Expression::Validator.validate(Spdx::Expression::LicenseNode.new(bad)).valid?.should be_false
   end
 
+  it "flags a ref with a trailing newline" do
+    result = Spdx::Expression::Validator.validate(Spdx::Expression::LicenseRefNode.new("LicenseRef-x\n", "DocumentRef-y\n"))
+    result.errors.size.should eq(2)
+  end
+
   it "flags a malformed DocumentRef" do
     ast = Spdx::Expression::LicenseRefNode.new("LicenseRef-custom-1", "DocumentRef-bad_ref")
     result = Spdx::Expression::Validator.validate(ast)

@@ -4,13 +4,14 @@ module Spdx
   class SpdxDocument
     include JSON::Serializable
 
-    SPDX_ID_PATTERN = /^SPDXRef-[a-zA-Z0-9.\-]+$/
+    # `\A`/`\z`, not `^`/`$`: PCRE's `$` also matches before a trailing "\n".
+    SPDX_ID_PATTERN = /\ASPDXRef-[a-zA-Z0-9.\-]+\z/
     URI_PATTERN     = /^https?:\/\/.+/
-    CREATOR_PATTERN = /^(Tool|Organization|Person):\s*.+$/
-    ISO8601_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/
+    CREATOR_PATTERN = /\A(Tool|Organization|Person):\s*.+\z/
+    ISO8601_PATTERN = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z\z/
     # `"LicenseRef-"[idstring]` where idstring is letters, numbers, "." and
     # "-" (SPDX 2.3 §10.1).
-    LICENSE_REF_PATTERN = /^LicenseRef-[a-zA-Z0-9.\-]+$/
+    LICENSE_REF_PATTERN = Expression::Validator::LICENSE_REF_PATTERN
     # Accepted on input for backwards compatibility, but not in SPDX 2.3
     # (clause 11.1, Table 68; the 2.3 JSON schema's relationshipType enum).
     NON_SPDX_2_3_RELATIONSHIP_TYPES = {
@@ -100,6 +101,8 @@ module Spdx
 
       # The JSON and tag-value parsers reject invalid UTF-8, but a document
       # built in code (or via `from_json`) can still carry it.
+      # ponytail: serializes the whole document once per call; walk the
+      # string fields instead if validating huge SBOMs gets memory-bound.
       errors << "document contains invalid UTF-8 (SPDX documents must be UTF-8)" unless to_json.valid_encoding?
 
       # Document-level required fields

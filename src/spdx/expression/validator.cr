@@ -26,8 +26,9 @@ module Spdx
     class Validator
       # `license-ref = ["DocumentRef-"(idstring)":"]"LicenseRef-"(idstring)`
       # with `idstring = 1*(ALPHA / DIGIT / "-" / "." )` (SPDX 2.3, Annex D).
-      LICENSE_REF_PATTERN  = /^LicenseRef-[A-Za-z0-9.\-]+$/
-      DOCUMENT_REF_PATTERN = /^DocumentRef-[A-Za-z0-9.\-]+$/
+      # `\A`/`\z`: PCRE's `$` also matches before a trailing "\n".
+      LICENSE_REF_PATTERN  = /\ALicenseRef-[A-Za-z0-9.\-]+\z/
+      DOCUMENT_REF_PATTERN = /\ADocumentRef-[A-Za-z0-9.\-]+\z/
 
       def self.validate(node : Node) : ValidationResult
         errors = [] of String

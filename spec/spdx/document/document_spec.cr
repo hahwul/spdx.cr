@@ -493,4 +493,19 @@ describe Spdx::SpdxDocument do
     doc = Spdx::SpdxDocument.from_json(json)
     doc.validate.should eq(["document contains invalid UTF-8 (SPDX documents must be UTF-8)"])
   end
+
+  it "rejects identifiers and timestamps with a trailing newline" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+      name: "t", document_namespace: "https://example.org/t",
+      creation_info: Spdx::CreationInfo.new(created: "2024-01-01T00:00:00Z\n", creators: ["Tool: x\n"])
+    )
+    doc.packages = [Spdx::Package.new(spdx_id: "SPDXRef-a\n", name: "p", download_location: "NOASSERTION")]
+    doc.extracted_licensing_infos = [Spdx::ExtractedLicensingInfo.new(license_id: "LicenseRef-x\n", extracted_text: "t")]
+    errors = doc.validate
+    errors.should contain("creationInfo.created must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
+    errors.should contain("creationInfo.creators[0] must start with 'Tool:', 'Organization:', or 'Person:'")
+    errors.should contain("packages[0].SPDXID format invalid")
+    errors.should contain("hasExtractedLicensingInfos[0].licenseId must be of the form 'LicenseRef-[idstring]'")
+  end
 end
