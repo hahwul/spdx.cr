@@ -4,13 +4,14 @@ module Spdx
   class SpdxDocument
     include JSON::Serializable
 
-    SPDX_ID_PATTERN = /^SPDXRef-[a-zA-Z0-9.\-]+$/
+    # `\A`/`\z`, not `^`/`$`: PCRE's `$` also matches before a trailing "\n".
+    SPDX_ID_PATTERN = /\ASPDXRef-[a-zA-Z0-9.\-]+\z/
     URI_PATTERN     = /^https?:\/\/.+/
-    CREATOR_PATTERN = /^(Tool|Organization|Person):\s*.+$/
-    ISO8601_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/
+    CREATOR_PATTERN = /\A(Tool|Organization|Person):\s*.+\z/
+    ISO8601_PATTERN = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z\z/
     # `"LicenseRef-"[idstring]` where idstring is letters, numbers, "." and
     # "-" (SPDX 2.3 §10.1).
-    LICENSE_REF_PATTERN = /^LicenseRef-[a-zA-Z0-9.\-]+$/
+    LICENSE_REF_PATTERN = Expression::Validator::LICENSE_REF_PATTERN
     # Accepted on input for backwards compatibility, but not in SPDX 2.3
     # (clause 11.1, Table 68; the 2.3 JSON schema's relationshipType enum).
     NON_SPDX_2_3_RELATIONSHIP_TYPES = {
@@ -98,6 +99,12 @@ module Spdx
     def validate : Array(String)
       errors = [] of String
 
+      # The JSON and tag-value parsers reject invalid UTF-8, but a document
+      # built in code (or via `from_json`) can still carry it.
+      # ponytail: serializes the whole document once per call; walk the
+      # string fields instead if validating huge SBOMs gets memory-bound.
+      errors << "document contains invalid UTF-8 (SPDX documents must be UTF-8)" unless to_json.valid_encoding?
+
       # Document-level required fields
       errors << "spdxVersion is required" if spdx_version.empty?
       errors << "spdxVersion must be 'SPDX-2.3'" if !spdx_version.empty? && spdx_version != "SPDX-2.3"
@@ -105,7 +112,7 @@ module Spdx
       errors << "SPDXID must be 'SPDXRef-DOCUMENT'" if spdx_id != "SPDXRef-DOCUMENT"
       errors << "name is required" if name.empty?
       errors << "documentNamespace is required" if document_namespace.empty?
-      errors << "documentNamespace must be a valid URI" if !document_namespace.empty? && !document_namespace.matches?(URI_PATTERN)
+      errors << "documentNamespace must be a valid URI" if !document_namespace.empty? && !utf8_match?(document_namespace, URI_PATTERN)
       # SPDX 2.3 §6.5: the namespace URI must not carry a fragment, because
       # '#' separates the namespace from an element identifier.
       errors << "documentNamespace must not contain a '#' fragment delimiter" if document_namespace.includes?('#')
@@ -138,14 +145,20 @@ module Spdx
       validate.empty?
     end
 
+    # `matches?` raises ArgumentError on invalid UTF-8; such a value is
+    # reported by the document-level UTF-8 check and fails the format check.
+    private def utf8_match?(value : String, pattern : Regex) : Bool
+      value.valid_encoding? && value.matches?(pattern)
+    end
+
     private def validate_creation_info(errors : Array(String))
       ci = creation_info
       errors << "creationInfo.created is required" if ci.created.empty?
-      errors << "creationInfo.created must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)" if !ci.created.empty? && !ci.created.matches?(ISO8601_PATTERN)
+      errors << "creationInfo.created must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)" if !ci.created.empty? && !utf8_match?(ci.created, ISO8601_PATTERN)
       errors << "creationInfo.creators must not be empty" if ci.creators.empty?
 
       ci.creators.each_with_index do |creator, i|
-        unless creator.matches?(CREATOR_PATTERN)
+        unless utf8_match?(creator, CREATOR_PATTERN)
           errors << "creationInfo.creators[#{i}] must start with 'Tool:', 'Organization:', or 'Person:'"
         end
       end
@@ -156,7 +169,7 @@ module Spdx
         pkgs.each_with_index do |pkg, i|
           prefix = "packages[#{i}]"
           errors << "#{prefix}.SPDXID is required" if pkg.spdx_id.empty?
-          errors << "#{prefix}.SPDXID format invalid" if !pkg.spdx_id.empty? && !pkg.spdx_id.matches?(SPDX_ID_PATTERN)
+          errors << "#{prefix}.SPDXID format invalid" if !pkg.spdx_id.empty? && !utf8_match?(pkg.spdx_id, SPDX_ID_PATTERN)
           errors << "#{prefix}.name is required" if pkg.name.empty?
           errors << "#{prefix}.downloadLocation is required" if pkg.download_location.empty?
 
@@ -200,7 +213,7 @@ module Spdx
         file_list.each_with_index do |f, i|
           prefix = "files[#{i}]"
           errors << "#{prefix}.SPDXID is required" if f.spdx_id.empty?
-          errors << "#{prefix}.SPDXID format invalid" if !f.spdx_id.empty? && !f.spdx_id.matches?(SPDX_ID_PATTERN)
+          errors << "#{prefix}.SPDXID format invalid" if !f.spdx_id.empty? && !utf8_match?(f.spdx_id, SPDX_ID_PATTERN)
           errors << "#{prefix}.fileName is required" if f.file_name.empty?
           # SPDX 2.3 §8.4, Table 39: a SHA1 checksum is mandatory (1..1).
           unless f.checksums.try &.any?(&.algorithm.sha1?)
@@ -222,7 +235,7 @@ module Spdx
         snippet_list.each_with_index do |s, i|
           prefix = "snippets[#{i}]"
           errors << "#{prefix}.SPDXID is required" if s.spdx_id.empty?
-          errors << "#{prefix}.SPDXID format invalid" if !s.spdx_id.empty? && !s.spdx_id.matches?(SPDX_ID_PATTERN)
+          errors << "#{prefix}.SPDXID format invalid" if !s.spdx_id.empty? && !utf8_match?(s.spdx_id, SPDX_ID_PATTERN)
           errors << "#{prefix}.snippetFromFile is required" if s.snippet_from_file.empty?
           errors << "#{prefix}.ranges must not be empty" if s.ranges.empty?
 
@@ -248,7 +261,7 @@ module Spdx
         prefix = "hasExtractedLicensingInfos[#{i}]"
         if info.license_id.empty?
           errors << "#{prefix}.licenseId is required"
-        elsif !info.license_id.matches?(LICENSE_REF_PATTERN)
+        elsif !utf8_match?(info.license_id, LICENSE_REF_PATTERN)
           errors << "#{prefix}.licenseId must be of the form 'LicenseRef-[idstring]'"
         elsif !seen.add?(info.license_id)
           errors << "#{prefix}.licenseId duplicates '#{info.license_id}'"

@@ -24,7 +24,8 @@ doc = Spdx::Format::TagValue::Parser.parse_file("example.spdx")
 
 Supports:
 - Standard `Tag: Value` pairs
-- Multiline values with `<text>...</text>`
+- Multiline values with `<text>...</text>`. Line breaks inside the block are
+  kept as written (`\n` or `\r\n`); tools-java turns them all into `\n`.
 - Section detection (Document, Package, File, Snippet, License, Annotation)
 - Relationship parsing with comments
 - External document references

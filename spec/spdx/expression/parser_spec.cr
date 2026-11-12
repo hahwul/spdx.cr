@@ -186,6 +186,24 @@ describe Spdx::Expression::Parser do
     end
   end
 
+  # Annex D: idstring = 1*(ALPHA / DIGIT / "-" / ".").
+  it "rejects an empty or malformed LicenseRef/DocumentRef idstring" do
+    {
+      "LicenseRef-"                          => /Malformed LicenseRef: LicenseRef- /,
+      "LicenseRef-bad_ref"                   => /Malformed LicenseRef/,
+      "LicenseRef-\u00e9"                    => /Malformed LicenseRef/,
+      "MIT OR LicenseRef-"                   => /Malformed LicenseRef/,
+      "DocumentRef-:LicenseRef-a"            => /Malformed DocumentRef: DocumentRef- /,
+      "DocumentRef-bad_ref:LicenseRef-a"     => /Malformed DocumentRef/,
+      "DocumentRef-a:LicenseRef-"            => /Malformed LicenseRef/,
+      "DocumentRef-a:LicenseRef-x_y AND MIT" => /Malformed LicenseRef/,
+    }.each do |expr, message|
+      expect_raises(Spdx::ParseError, message) { Spdx::Expression::Parser.parse(expr) }
+      Spdx.valid_expression?(expr).should be_false
+    end
+    Spdx.valid_expression?("DocumentRef-a.1:LicenseRef-b-2.x").should be_true
+  end
+
   it "raises ParseError on malformed UTF-8" do
     expect_raises(Spdx::ParseError, /UTF-8/) do
       Spdx::Expression::Parser.parse(String.new(Bytes[0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x52, 0x65, 0x66, 0x2d, 0xff]))
@@ -193,7 +211,7 @@ describe Spdx::Expression::Parser do
   end
 
   it "tokenizes long non-ASCII input in linear time" do
-    input = "LicenseRef-\u00e9" + " AND MIT" * 10_000
+    input = "\u00e9" + " AND MIT" * 10_000
     elapsed = Time.measure { Spdx::Expression::Parser.parse(input) }
     elapsed.should be < 2.seconds # quadratic String#[] took seconds here
   end

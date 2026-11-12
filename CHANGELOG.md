@@ -11,6 +11,15 @@
   warning and `valid?` was always `true`.
 - The `spdx expression validate` CLI now exits non-zero when the result has
   errors, and prints an `Errors:` section in addition to `Warnings:`.
+- The expression parser raises `ParseError` ("Malformed LicenseRef: …" /
+  "Malformed DocumentRef: …") when the idstring after `LicenseRef-` or
+  `DocumentRef-` is empty or has characters other than letters, digits, `-`
+  and `.` (SPDX 2.3 Annex D). `valid_expression?("LicenseRef-")` is now
+  `false`, and `validate_expression` raises instead of returning a
+  "Malformed LicenseRef" error; before, only the validator flagged it.
+- Tag-value `<text>` blocks keep CRLF line breaks (`"a\r\nb"`) instead of
+  turning them into `"\n"`. tools-java normalises them; outside text blocks
+  nothing changes, and first/last-line trimming is unchanged.
 
 ### Changed
 
@@ -45,6 +54,12 @@
 - `SpdxDocument#validate` reports relationship types that are not in SPDX 2.3
   (they fail the 2.3 JSON schema).
 - `spdx expression parse NONE` printed no AST line.
+- `SpdxDocument#validate` and `Expression::Validator.validate` raised
+  `ArgumentError` on invalid UTF-8 in a document built in code or loaded with
+  `SpdxDocument.from_json`. They now report it as an error.
+- SPDXID, `LicenseRef-`, `DocumentRef-`, creator and `created` checks used
+  `^…$`, so a value with a trailing newline (`"SPDXRef-a\n"`) passed. They now
+  anchor with `\A…\z`.
 - Expression parsing was quadratic on non-ASCII input (`String#[]` by char
   index), and a long flat AND/OR chain built an AST deep enough to overflow
   the stack in `to_s`/the validator. The tokenizer now indexes a char array,

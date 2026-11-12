@@ -26,8 +26,9 @@ module Spdx
     class Validator
       # `license-ref = ["DocumentRef-"(idstring)":"]"LicenseRef-"(idstring)`
       # with `idstring = 1*(ALPHA / DIGIT / "-" / "." )` (SPDX 2.3, Annex D).
-      LICENSE_REF_PATTERN  = /^LicenseRef-[A-Za-z0-9.\-]+$/
-      DOCUMENT_REF_PATTERN = /^DocumentRef-[A-Za-z0-9.\-]+$/
+      # `\A`/`\z`: PCRE's `$` also matches before a trailing "\n".
+      LICENSE_REF_PATTERN  = /\ALicenseRef-[A-Za-z0-9.\-]+\z/
+      DOCUMENT_REF_PATTERN = /\ADocumentRef-[A-Za-z0-9.\-]+\z/
 
       def self.validate(node : Node) : ValidationResult
         errors = [] of String
@@ -74,11 +75,13 @@ module Spdx
         when LicenseRefNode
           # The referenced license itself is user-defined, so only the shape
           # of the identifier is checked against the ABNF.
-          unless node.license_ref.matches?(LICENSE_REF_PATTERN)
+          # The parser rejects these; nodes built in code may still carry
+          # them, including invalid UTF-8 (which makes `matches?` raise).
+          unless node.license_ref.valid_encoding? && node.license_ref.matches?(LICENSE_REF_PATTERN)
             errors << "Malformed LicenseRef: #{node.license_ref}"
           end
           if doc_ref = node.document_ref
-            unless doc_ref.matches?(DOCUMENT_REF_PATTERN)
+            unless doc_ref.valid_encoding? && doc_ref.matches?(DOCUMENT_REF_PATTERN)
               errors << "Malformed DocumentRef: #{doc_ref}"
             end
           end

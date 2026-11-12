@@ -33,8 +33,9 @@ Parses and validates the expression against the SPDX license list.
 
 ```crystal
 result = Spdx.validate_expression("MIT AND FakeLicense-1.0")
-result.valid?    # => true
-result.warnings  # => ["Unknown license: FakeLicense-1.0"]
+result.valid?    # => false
+result.errors    # => ["Unknown license: FakeLicense-1.0"]
+result.warnings  # => []
 ```
 
 **Raises:** `Spdx::ParseError` if the expression is syntactically invalid.

@@ -312,6 +312,20 @@ describe Spdx::Format::TagValue::Parser do
       doc.creation_info.creators.should eq(["Tool: x"])
     end
 
+    it "keeps CRLF line breaks inside a <text> block of a CRLF file" do
+      crlf = (header + "DocumentComment: <text>\nfirst\n  mid \nlast  </text>\nCreator: Tool: x\n").gsub("\n", "\r\n")
+      doc = Spdx::Format::TagValue::Parser.parse(crlf)
+      doc.comment.should eq("\r\nfirst\r\n  mid \r\nlast")
+      doc.creation_info.creators.should eq(["Tool: x"])
+    end
+
+    it "round-trips CR and CRLF in text values" do
+      doc = Spdx::Format::TagValue::Parser.parse(header)
+      doc.comment = "a\r\nb\nc\rd\r\ne"
+      reparsed = Spdx::Format::TagValue::Parser.parse(Spdx::Format::TagValue::Generator.generate(doc))
+      reparsed.comment.should eq("a\r\nb\nc\rd\r\ne")
+    end
+
     it "raises FormatError on an unterminated block instead of swallowing the rest" do
       expect_raises(Spdx::FormatError, /Unterminated/) do
         Spdx::Format::TagValue::Parser.parse(header + "DocumentComment: <text>oops\nPackageName: p\n")

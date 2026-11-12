@@ -463,4 +463,49 @@ describe Spdx::SpdxDocument do
     ]
     doc.validate.should eq(["relationships[1].relationshipType 'AFFECTS' is not an SPDX 2.3 relationship type"])
   end
+
+  it "reports invalid UTF-8 instead of raising, for a document built in code" do
+    bad = String.new(Bytes[0x78, 0xff])
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+      name: bad, document_namespace: "https://example.org/#{bad}",
+      creation_info: Spdx::CreationInfo.new(created: bad, creators: [bad])
+    )
+    doc.packages = [Spdx::Package.new(spdx_id: bad, name: "p", download_location: "NOASSERTION", license_concluded: bad)]
+    doc.files = [Spdx::FileInfo.new(spdx_id: bad, file_name: "f")]
+    doc.snippets = [Spdx::Snippet.new(spdx_id: bad, snippet_from_file: "f", ranges: [] of Spdx::SnippetRange)]
+    doc.extracted_licensing_infos = [Spdx::ExtractedLicensingInfo.new(license_id: bad, extracted_text: "t")]
+    doc.relationships = [Spdx::Relationship.new(spdx_element_id: bad, relationship_type: Spdx::RelationshipType::DESCRIBES, related_spdx_element: bad)]
+
+    errors = doc.validate
+    errors.should contain("document contains invalid UTF-8 (SPDX documents must be UTF-8)")
+    errors.should contain("documentNamespace must be a valid URI")
+    errors.should contain("creationInfo.creators[0] must start with 'Tool:', 'Organization:', or 'Person:'")
+    errors.should contain("packages[0].SPDXID format invalid")
+    errors.should contain("packages[0].licenseConcluded: invalid SPDX license expression (Expression is not valid UTF-8)")
+    errors.should contain("files[0].SPDXID format invalid")
+    errors.should contain("snippets[0].SPDXID format invalid")
+    errors.should contain("hasExtractedLicensingInfos[0].licenseId must be of the form 'LicenseRef-[idstring]'")
+  end
+
+  it "reports invalid UTF-8 in a field that has no format check" do
+    json = %({"spdxVersion":"SPDX-2.3","dataLicense":"CC0-1.0","SPDXID":"SPDXRef-DOCUMENT","name":"x\xFF","documentNamespace":"https://example.org/x","creationInfo":{"created":"2024-01-01T00:00:00Z","creators":["Tool: t"]},"documentDescribes":["SPDXRef-DOCUMENT"]})
+    doc = Spdx::SpdxDocument.from_json(json)
+    doc.validate.should eq(["document contains invalid UTF-8 (SPDX documents must be UTF-8)"])
+  end
+
+  it "rejects identifiers and timestamps with a trailing newline" do
+    doc = Spdx::SpdxDocument.new(
+      spdx_version: "SPDX-2.3", data_license: "CC0-1.0", spdx_id: "SPDXRef-DOCUMENT",
+      name: "t", document_namespace: "https://example.org/t",
+      creation_info: Spdx::CreationInfo.new(created: "2024-01-01T00:00:00Z\n", creators: ["Tool: x\n"])
+    )
+    doc.packages = [Spdx::Package.new(spdx_id: "SPDXRef-a\n", name: "p", download_location: "NOASSERTION")]
+    doc.extracted_licensing_infos = [Spdx::ExtractedLicensingInfo.new(license_id: "LicenseRef-x\n", extracted_text: "t")]
+    errors = doc.validate
+    errors.should contain("creationInfo.created must be ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)")
+    errors.should contain("creationInfo.creators[0] must start with 'Tool:', 'Organization:', or 'Person:'")
+    errors.should contain("packages[0].SPDXID format invalid")
+    errors.should contain("hasExtractedLicensingInfos[0].licenseId must be of the form 'LicenseRef-[idstring]'")
+  end
 end

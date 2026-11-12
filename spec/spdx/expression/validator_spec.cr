@@ -65,18 +65,31 @@ describe Spdx::Expression::Validator do
     end
   end
 
+  # The parser rejects these; only nodes built in code reach the validator.
   it "flags a LicenseRef whose idstring is empty or malformed" do
     # license-ref = ["DocumentRef-"(idstring)":"]"LicenseRef-"(idstring)
-    ["LicenseRef-", "LicenseRef-bad_ref"].each do |expr|
-      ast = Spdx::Expression::Parser.parse(expr)
-      result = Spdx::Expression::Validator.validate(ast)
+    ["LicenseRef-", "LicenseRef-bad_ref"].each do |ref|
+      result = Spdx::Expression::Validator.validate(Spdx::Expression::LicenseRefNode.new(ref))
       result.valid?.should be_false
       result.errors.any?(&.includes?("Malformed LicenseRef")).should be_true
     end
   end
 
+  it "reports (does not raise on) invalid UTF-8 in a LicenseRef or DocumentRef" do
+    bad = String.new(Bytes[0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x52, 0x65, 0x66, 0x2d, 0xff])
+    result = Spdx::Expression::Validator.validate(Spdx::Expression::LicenseRefNode.new(bad, bad))
+    result.errors.any?(&.includes?("Malformed LicenseRef")).should be_true
+    result.errors.any?(&.includes?("Malformed DocumentRef")).should be_true
+    Spdx::Expression::Validator.validate(Spdx::Expression::LicenseNode.new(bad)).valid?.should be_false
+  end
+
+  it "flags a ref with a trailing newline" do
+    result = Spdx::Expression::Validator.validate(Spdx::Expression::LicenseRefNode.new("LicenseRef-x\n", "DocumentRef-y\n"))
+    result.errors.size.should eq(2)
+  end
+
   it "flags a malformed DocumentRef" do
-    ast = Spdx::Expression::Parser.parse("DocumentRef-bad_ref:LicenseRef-custom-1")
+    ast = Spdx::Expression::LicenseRefNode.new("LicenseRef-custom-1", "DocumentRef-bad_ref")
     result = Spdx::Expression::Validator.validate(ast)
     result.valid?.should be_false
     result.errors.any?(&.includes?("Malformed DocumentRef")).should be_true
